@@ -1,0 +1,135 @@
+{include file="../header.phtml"}
+<style type="text/css">
+	.show_error
+	{
+		color:#EEC900;
+		font-size:0.9em;
+		font-weight:bold;
+		font-family:"微软雅黑,宋体，黑体";
+	}
+	.order
+	{
+		width:100%;
+		height:4em;
+		border-bottom:1px solid grey;
+		font-family:"微软雅黑";
+		font-size:0.8em;
+	
+	}
+	.order_left
+	{
+		width:25%;
+		height:4em;
+		float:left;
+		text-align:center;
+	}
+	.order_show
+	{
+		width:75%;
+		height:4em;
+		float:right;
+		
+	}
+	.order_show span
+	{
+		display:inline-block;
+	}
+	.left
+	{
+		width:70%;
+		float:left;
+		height:2em;
+	}
+	.right{
+		width:30%;
+		float:right;
+		height:2em;
+	}
+	
+</style>
+ <div class='go_back' style='width:100%;line-height:2em;'><span><<订单列表</span>&nbsp;&nbsp;<span><input type='text'  size="18" name='search'><input type='button' name="search_button" value="搜索"></span></div>
+ <div class='go_back' style='width:100%;line-height:2em;border-bottom:1px solid grey'><span>订单记录</span><span style='float:right;width:30%;text-align:right'>共{$count}条</span></div>
+	 {if $order_info.status=="-1" || $error_result || $manager_error}
+	  <!--管理列表的权限失败显示页面(员工执行此操作后的显示)-->
+		<div class="nav"></div>
+		<div class="nav"></div>
+		<div class="show_error">没有对应的店铺或订单存在或者获取用户权限信息失败</div>
+		{else}
+		<input type='hidden' name="openid" value="{$openid}">
+		<input type='hidden' name="store" value="{$store}">
+		{foreach from=$order_info item=order}
+			<div class="order">
+				<div class="order_left"><div style='height:2em'>{$order.require_time_day}</div><div class='bottom'>{$order.require_time_hour}</div></div>
+				<div class="order_show" httr="{$order.status}" id="{$order.order_id}">
+					<div><span class="left">{$order.consignee}{$order.tel}</span><span class="right">￥{$order.order_amount}</span></div>
+					<div class="bottom">  <!--订单详情的显示部分-->
+						<span style='float:left;width:60%;overflow:hidden'>地址:{$order.address|truncate:9:"...":true}</span>
+						<!--显示状态-->
+						{if $order.status=="untreated"}
+							<span style='float:right;width:30%'>未处理</span>
+						  {else if $order.status=="receive"}
+							{if $order.to_delivery=='mess'}
+							  {if $order.delivery_status=='receive'}
+								<span style='float:right;width:30%'>趣活接受</span>
+								{else if $order.delivery_status=='refuse'}
+								<span style='float:right;width:30%'>趣活拒绝</span>
+								{else}
+								<span style='float:right;width:30%'>趣活完成</span>
+							  {/if}
+							 {else}
+								<span style='float:right;width:30%'>已接受</span>
+							 {/if}
+						  {else if $order.status=="unusual"}
+							<span style='float:right;width:30%'>已冻结</span>
+						  {else}
+							<span style='float:right;width:30%'>已拒绝</span>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{/foreach}
+	 {/if}
+	 
+	</body>
+</html>
+<script type="text/javascript">
+var openid=$("input[name='openid']").attr("value");
+$(function(){
+	$(".order_show").each(function(){
+		var status=$(this).attr("httr");
+		if(status=="untreated"){
+			$(this).css("color","#836FFF");
+		}else if(status=="receive"){
+			$(this).css("color","#BC8F8F");
+		}else if(status=="unusual"){
+			$(this).css("color","red");
+		}else{
+			$(this).css("color","black");
+		}
+	});
+	//点击跳转到详情页:
+	$(".order_show").on("click",function(){
+		var order_id=$(this).attr("id");
+		window.location.href="/orderdisplay/edit?order_id="+order_id+"&openId="+openid;
+	});
+	
+	//指定订单的搜索
+	$("input[type='button']").on("click",function(){
+		
+		var name=$("input[name='search']").val();
+		
+		var store=$("input[name='store']").val();
+		
+		if(name==""){
+			
+			alert("请输入有效的搜索条件");
+			return;
+		}else{
+			
+			window.location.href="/orderdisplay/search?name="+name+"&store="+store+"&openId="+openid;
+		
+		}
+	
+	})
+});
+</script>

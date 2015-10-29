@@ -1,0 +1,88 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="/application/modules/Scheduling/public/js/scheduling.js"></script>
+<script>
+$(function() {
+	// nav background
+	$(".deliverystaff").attr("id", "a");
+});
+</script>
+<div id="search">
+	<form name="searchFrom" class="searchFrom" action="" method="get">
+	<table class="inputstyle">
+		<tr>
+			<td width="20%">
+				<span>姓名</span>
+				<input type="text" name="emp_name" id="emp_name" value="{$emp_name}" />
+			</td>
+			<td width="80%" colspan="4">
+				<span>手机号</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+		</tr>
+		
+		<tr align="center">
+			<td colspan="5">
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 "/>
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr class="total">
+			<td colspan="10" align="right">{$store_summary}</td>
+		</tr>
+		<tr>
+			<th>序号</th>
+			<th>姓名</th>
+			<th>手机号</th>
+			<th>所属区域</th>
+			<th>已完成订单数</th>
+			<th>已取餐订单数</th>
+			<th>已接受订单数</th>
+			<th>异常订单数</th>
+			<th>今日总订单数</th>
+			<th>系统运行效率</th>
+		</tr>
+		<!-- {section loop=$orderArr name=n}
+		<tr class="discolor">
+			<td align="center">{$smarty.section.n.index+1}</td>
+			<td><a href="/custom/crmorder/order?order_id={$orderArr[n].order_id}" target="_Blank">{$orderArr[n].order_sn}</a></td>
+			<td>{$partner[$orderArr[n].from_partner]}</td>
+			<td>{$orderArr[n].order_type_str}</td>
+			<td align="center">
+			{if $orderArr[n].is_ordervip ==0}
+				否
+				{else}
+				是
+			{/if}
+			</td>
+			<td>{$orderArr[n].add_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td>{$orderArr[n].request_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td align="right">{$orderArr[n].order_amount|string_format:"%.2f"}</td>
+			<td><a href="#" onclick="consignee({$orderArr[n].buyer_id})">{$orderArr[n].consignee}</a></td>
+			<td>{$orderArr[n].phone_mob}</td>
+			<td title="{$orderArr[n].address}">{$orderArr[n].address}</td>
+			<td align="center">
+			{if $orderArr[n].is_new == 0}
+				否
+			{else}
+				是
+			{/if}
+			</td>
+			<td title="{$orderArr[n].seller_name}">{$orderArr[n].seller_name}</td>
+			<td>{$orderArr[n].emp_name}</td>
+			<td>{$orderArr[n].region_name}</td>
+			<td>{$orderStatus[$orderArr[n].status]}</td>
+			<td><a href="#" onclick="batchConfirm({$orderArr[n].order_id})">确认</a> | <a href="#" onclick="closeOrder({$orderArr[n].order_id})">关闭</a></td>
+		</tr>
+		{/section} -->
+		<tr class="total">
+			<td colspan="10" align="right">{$store_summary}</td>
+		</tr>
+	</table>
+</div>
+{include file="$app_path/application/views/footer.phtml"}

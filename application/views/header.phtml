@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--默认的头部趣活美食送-->
+<html>
+<head>
+<title>趣活美食送</title>
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7 charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+
+<link rel="stylesheet" href="{$smarty.const.STATIC_URI}/id/css/jquery-ui-1.11.0.css" />
+<script src="{$smarty.const.STATIC_URI}/id/js/jquery-1.10.2.min.js"></script>
+<script src="{$smarty.const.STATIC_URI}/id/js/jquery-ui-1.11.0.min.js"></script>
+<script src="{$smarty.const.STATIC_URI}/id/js/TimepickerAddon.js"></script>
+<script src="{$smarty.const.STATIC_URI}/id/js/jquery.center.js"></script>
+<script src="{$smarty.const.STATIC_URI}/id/js/crmbase.js"></script>
+<script src="{$smarty.const.STATIC_URI}/id/js/jquery.multiple.select.js"></script>
+<link rel="stylesheet" href="{$smarty.const.STATIC_URI}/id/css/multiple-select.css" />
+<link rel="stylesheet" href="{$smarty.const.STATIC_URI}/id/css/crmbase.css" />
+<link rel="stylesheet" href="{$smarty.const.STATIC_URI}/id/css/nav.css" />
+
+<!--<link rel="stylesheet" type="text/css" href="{$smarty.const.STATIC_URI}/crm/css/ui.dropdownchecklist.themeroller.css">
+<script src="{$smarty.const.STATIC_URI}/crm/js/ui.dropdownchecklist.js"></script>-->
+
+<script src="{$smarty.const.STATIC_URI}/id/js/socket.io.js"></script>
+</head>
+
+<body>
+<div class="nav">
+	<ul class="dropdown dropdown-horizontal">
+		<li class="neworder"><a href="/custom/crmorder/neworder" class="dir" target="_self">未处理订单</a></li>
+		<li class="assignorder"><a href="/custom/crmorder/assignorder" class="dir" target="_self">已分配订单</a></li>
+		<li class="allorder"><a href="/custom/crmorder/allorder" class="dir" target="_self">全部订单</a></li>
+		<li><a href="#" class="dir">|</a></li>
+		<li class="empcount"><a href="/custom/crmorder/empcount" class="dir" target="_self">配送员统计</a></li>
+		
+		<!-- <li class="csAssignOrder"><a href="/custom/crmorder/csAssignOrder" class="dir" target="_self">众包已分配</a></li> -->
+		<li style="float:right;padding-right:60px"><a href="/member/member/index" class="dir">{$username}</a>
+			<ul>
+				<li><a href="/member/member/quit">退出</a></li>
+			</ul>
+		</li>
+		<!--
+		<li style="float:right;"><a href="javascript:void(0)" onclick="openDialog(openUrl('/Member/Member/serviceArea'), '600', '400', '服务区域', true);" class="dir">服务区域</a></li> 
+		-->
+		<li style="float:right;"><a href="javascript:void(0)" onclick="openDialog(openUrl('/custom/crmorder/getLocalOrder'), '1000', '500', '订单操作记录', true);" class="dir">订单操作记录</a></li>
+		<!--<li><a href="./" class="dir">Products</a>
+			<ul> 
+				<li><a href="./">Desktop</a></li>
+				<li><a href="./">Workstation</a></li>
+				<li><a href="./">Servers</a></li>
+				<li><a href="./">Motherboard</a></li>
+			</ul>
+		</li>-->
+	</ul>
+</div>
+
+<script>
+$(document).ready(function() {
+	// date
+	$(".dates").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: "yy-mm-dd",
+        autoSize: true
+	});
+	$(".datetime").datetimepicker({
+		changeMonth: true,
+        changeYear: true,
+		dateFormat: "yy-mm-dd",
+		timeFormat: "HH:mm"
+	});
+	// $(".datetime").attr("readonly", "readonly");
+	// $("#search input, input:not([type='text']), button").button();
+	$(".search input, .fixedBottom input, button").button();
+	// $("#search input:not([type='text']), .fixedBottom input, button").button();
+	// $("#search select").selectmenu().selectmenu("menuWidget").addClass("selectHeight");
+	discolor();
+	discolorHover();
+});
+</script>

@@ -1,0 +1,50 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script>
+$(function() {
+	$(".listDialog input, .listDialog button").button();
+});
+//同意申请退款
+function agreeDrawback(order_id,cooperate_id,partner_order_id){
+	remarkVal = $(".remark").val();
+	if(remarkVal.length < 6) {
+		alert("备注不能小于6个字");
+		return false;
+	}
+	$.ajax({
+		url: "/custom/crmorder/agreeDrawback",
+		type: "POST",
+		data: "order_id="+order_id+"&cooperate_id="+cooperate_id+"&partner_order_id="+partner_order_id+"&remark="+remarkVal,
+		datetime: "json",
+		success: function(response){
+			if(response == 1){
+				socketUpdateOrder('{$username}', '{$empname}', order_id);
+				$(".drawback").hide();
+				closeDialog();
+				alert("申请退款成功！");
+				window.setTimeout(windowClose, 1000);
+			} else if(response == -1){
+				dialogNote("申请退款失败");
+			} else if(response == -10){
+				dialogNote("请重新登陆");
+			}
+		}
+	})
+}
+</script>
+<div id="list" class="listDialog">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<tr>
+			<th>备注</th>
+			<td>
+				<textarea name="remark" class="remark" style="width:98%;height:120px;"></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" align="center">
+				<input name="confirm" type="button" value="确定" onclick="agreeDrawback({$order_id},{$cooperate_id},{$partner_order_id});" />
+				<input name="cancel" type="button" value="取消" onclick="closeDialog();" />
+			</td>
+		</tr>
+	</table>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}

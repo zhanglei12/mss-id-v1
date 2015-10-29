@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title> 百度接口</title>
+</head>
+	<body>
+	 <table width="800" border="1" cellpadding="0" cellspacing="0" align='center' >
+	 	<tr>
+	 		<th>店铺名字</th>
+	 		<th>所在区域</th>
+	 		<th>美食状态</th>
+	 		<th>操作</th>
+    </tr>
+{foreach from=$xianlist  item=value}
+ <tr align='center'>
+   <td >{$value.store_name}</td>
+   <td >{$value.region_name}</td>
+   <td>{$value.state}</td>
+   <td>
+    {if  $value.state eq "下架"}
+    <a href='edit?store_id={$value.store_id}&state=1'><font color='red'>上架</font></a>   
+     {else}
+   	<a href='edit?store_id={$value.store_id}&state=2'><font color='blue'>下架</a></a>
+  {/if}
+   </td>
+  </tr>
+ {/foreach}
+</table>
+	</body>
+</html>

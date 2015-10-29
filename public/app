@@ -1,0 +1,24 @@
+<?php
+ini_set("display_errors", "On");
+error_reporting(E_ALL | E_STRICT);
+if (!session_id()) session_start();
+define('MSS_API_APP', 1);
+define("APP_PATH", realpath(dirname(__FILE__) . '/..'));
+// set default timezone
+date_default_timezone_set('Asia/Shanghai');
+
+include APP_PATH . "/deploy/app_config.php";
+require APP_PATH . '/application/app_bootstrap.php';
+// set vendor to include path
+AppClassLoader::addClassPath(array(LIB_VENDOR_DIR, LIB_PEAR_DIR));
+AppClassLoader::loadConfigs($APP_CONFIG_FILES);
+AppClassLoader::loadLibraryFile($APP_LIBRARY_FILES);
+//AppClassLoader::loadPEAR($PEAR_FILES);
+//AppClassLoader::loadVendorFile($APP_PRELOAD_VENDOR_FILES);
+AppClassLoader::loadAll($APP_PRELOAD_FILES);
+//include APP_SRC_DIR . '/constants.php';
+
+//bootstrap doggy first
+include_once APP_SRC_DIR.'/doggy_bootstrap.php';
+$app = new Yaf_Application(APP_CONF_DIR . '/application.ini');
+$app->bootstrap()->run();

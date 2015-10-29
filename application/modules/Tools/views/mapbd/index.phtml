@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		{literal}
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<title>美食送地图工具【百度】</title>
+		<link rel="stylesheet" href="/public/css/jquery-ui-1.11.0.css" />
+		<style>
+			body,html{width: 100%;height: 100%;overflow: hidden;margin:0;}
+			table {padding-top:0 0 0 0;width:100%;height:auto;border-spacing:0;}
+			#mss_all{width: 100%;height: 99%;margin: 4px 4px 4px 4px;}
+			#mss_query{width: 20%;height: 100%;float: left;font-size: 12px;}
+			#mss_map{width: 78%;height: 100%;float: left;margin-left: 4px;}
+			.ui-tabs .ui-tabs-panel {padding: 1em 0.8em;}
+			.ui-widget {font-family:Verdana,Arial,sans-serif;font-size:12px;}
+			.ui-autocomplete-loading {background: white url("/public/img/ui-anim_basic_16x16.gif") right center no-repeat;}
+		</style>
+		{/literal}
+		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=WYuukb3i3l2BTKWhwqV5jnkm"></script>
+		<script type="text/javascript" src="http://api.map.baidu.com/library/GeoUtils/1.2/src/GeoUtils.js"></script> 
+		<script src="/public/js/jquery-1.10.2.min.js"></script>
+		<script src="/public/js/jquery-ui-1.11.0.min.js"></script>
+		<script src="/public/js/d3.min.js"></script>
+		<script type="text/javascript" src="/application/modules/Tools/js/mapbd.js"></script>
+		<script type="text/javascript" >
+			$(document).keypress(function(event)
+			{
+
+			});
+			$(document).ready(function()
+			{
+				initPage();
+			});
+			var $$ = function(func){
+				if (document.addEventListener) {
+				    window.addEventListener("load", func, false);
+					} else if (document.attachEvent) {
+				    	window.attachEvent("onload", func);
+					}
+				}
+$$(function(){
+	change_address();
+})
+		</script>
+	</head>
+	<body>
+		<div id="mss_all">
+			<div id="mss_query">
+				<div id="div_query_type">
+					<ul>
+						<li><a href="#div_query_type_store">区域查询</a></li>
+						<li><a href="#div_query_type_order">订单查询</a></li>
+						<li><a href="#div_query_type_route">配送员查询</a></li>
+					</ul>
+					<div id="div_query_type_store">
+						<div id="div_address_query" style="margin-top:4px;">
+							<table>
+								<tr>
+									<td width="30%">城市：</td>
+									<td>
+										<select id="select_address_city" style="width:65%;" autocomplete="off">
+											<{html_options values=$city_id_real selected=$city_selected output=$city_name_real}>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<td width="30%">查询地址：</td>
+									<td><input id="query_address" type="text" value='{$order_address}' placeholder="请输入一个待查询地址" style="width:100%;border:1px solid silver;" autocomplete="off" /></td>
+								</tr>
+								<tr>
+									<td valign="top">返回坐标：</td>
+									<td><div id="label_query_address_coord" style="width:100%;height:18px;border:1px solid silver;"></div></td>
+								</tr>
+								<tr>
+									<td valign="top">详细信息：</td>
+									<td>
+										<div id="label_query_address_detail" style="width:100%;height:120px;border:1px solid silver;">
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+						<hr style="height: 1px;border: none; border-top: 1px solid silver;" />
+						<div id="div_store_query_free">
+							<table>
+								<tr>
+									<td width="30%">店铺名称：</td>
+									<td><input id="store_name" type="text" placeholder="请输入一个店铺名称" style="width:100%;border:1px solid silver;" autocomplete="off" /></td>
+								</tr>
+								<tr>
+									<td width="30%">店铺坐标：</td>
+									<td><input id="store_coord" type="text" placeholder="经度,纬度" style="width:100%;border:1px solid silver;" autocomplete="off" /></td>
+								</tr>
+								<tr>
+									<td valign="top">商圈坐标：</td>
+									<td><textarea id="store_bc_coord" placeholder="经度,纬度;经度,纬度……" style="width:100%;height:120px;border:1px solid silver;" autocomplete="off"></textarea></td>
+								</tr>
+								<tr>
+									<td colspan="2" align="center"><input id="button_store_query_free" type="button" value="查询" style="margin-top:4px;" onclick="queryStoreByFree()" /></td>
+								</tr>
+							</table>
+						</div>
+						<hr style="height: 1px;border: none; border-top: 1px solid silver;" />
+						<div id="div_zone_query" style="margin-top:4px;">
+							<table>
+								<tr>
+									<td width="30%">城市：</td>
+									<td>
+										<select id="select_city" style="width:65%;" autocomplete="off">
+											<{html_options values=$city_id selected=$city_selected output=$city_name}>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<tr>
+									<td width="30%">区域：</td>
+									<td>
+										<select id="select_zone" style="width:65%;" autocomplete="off">
+												<{html_options values=$zone_id selected=$zone_selected output=$zone_name}>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<td valign="top">坐标：</td>
+									<td><textarea id="zone_coord" placeholder="经度,纬度;经度,纬度……" style="width:100%;height:120px;border:1px solid silver;" autocomplete="off"></textarea></td>
+								</tr>
+								<tr>
+									<td colspan="2" align="center"><input id="button_zone_query" type="button" value="查询" style="margin-top:4px;" onclick="queryZone()" /></td>
+								</tr>
+							</table>
+						</div>
+						<input type="hidden" id="zone_array" value='{$zone_array}' />
+					</div>
+					<div id="div_query_type_order">
+						tab2
+					</div>
+					<div id="div_query_type_route">
+						tab3
+					</div>
+				</div>
+			</div>
+			<div id="mss_map"></div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" defer>
+function change_address(){
+	var order_address = '{$order_address}';
+	alert(order_address);
+	// if(order_address != ''){
+		$("#query_address").val(order_address);
+	// }
+}
+window.onload=change_address;
+</script>

@@ -1,0 +1,37 @@
+<html>
+<head>
+<script src="../public/js/jquery-1.10.2.min.js"></script>
+<script src="../public/js/socket.io.js"></script>
+
+<script>
+	/* var socket = io('http://crm.meishisong.mobi:11023');
+	socket.on('new order', function (data) {
+		console.log(data);
+		alert(data);
+		socket.emit('my other event', { my: 'data' });
+	}); */
+
+	var socket = io.connect('http://crm.meishisong.mobi:11023');
+	socket.on('new order', function (data){0
+		$("#WSnewOrder li").remove();
+		$("#WSnewOrder").html('<li class="WStitle">餐厅名称</li>');
+		
+		var mysqldata = data.hello;
+		for(var mysqlkey in mysqldata) {
+			$(".WStitle").append('<li name=data'+mysqldata[mysqlkey]['order_id']+'>'+mysqldata[mysqlkey]['seller_name']+'</li>');
+		}
+		
+		socket.emit('html name', { my: 'index.phtml' });
+	});
+	
+</script>
+</head>
+<body>
+<p>Welcome to <span id="title">websocket</span></p> 
+<div>
+	<ul id="WSnewOrder">
+		<li class="WStitle">餐厅名称</li>
+	</ul>
+</div>
+</body>
+</html>

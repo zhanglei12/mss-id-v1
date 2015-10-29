@@ -1,0 +1,191 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/custom/order.js"></script>
+<script>
+
+$(function() {
+	var order_id = '{$order}';
+	ajaxSearchEmp(order_id);
+	$(".listDialog button").button();
+	getParentArea();
+	$("#parent_area").change(function(){
+		getParentArea();
+	});
+	var selectOrder = [];
+	// 获取锁
+	$("input[name='order_check[]']:checked").each(function(k,v) {
+		selectOrder[k] = $(this).val();
+		socket.emit('send order',{ uid: '{$username}', empname: '{$empname}', order_id: $(this).val() });
+    });
+
+	// 解除锁
+	$(".ui-dialog-titlebar-close").click(function(){
+		for (var i = selectOrder.length - 1; i >= 0; i--) {
+			socket.emit('unlock edit order', { uid: '{$username}', username: '{$empname}', order_id: selectOrder[i] });
+		};
+	});
+	
+	
+	$(document).keyup(function(event){
+		if(($("#esc_order_id").length > 0) && (event.keyCode == 27)){
+			for (var i = selectOrder.length - 1; i >= 0; i--) {
+				socket.emit('unlock edit order', { uid: '{$username}', username: '{$empname}', order_id: selectOrder[i] });
+			};
+		}
+	})
+	// socket.emit('send order',{ uid: '{$username}', empname: '{$empname}', order_id: '{$order_id}' });
+	// socket.emit('unlock edit order', { uid: '{$username}', username: '{$empname}', order_id: '{$order_id}' });
+});
+// socket = io.connect('{$WEB_SOCKET_IP}:{$WEB_SOCKET_PORT}');
+function ajaxSearchEmp(order_id) {
+	$(".empData").remove();
+	$(".emp-none").html("送餐员加载中...");
+	$("#emp-load").show();
+	var emp_name	= $.trim($("#empSearch #emp_name").val());
+	var emp_mobile	= $.trim($("#empSearch #emp_mobile").val());
+	var selectArea	= false;
+	var region 		= "0";
+	$.ajax({
+		url: "/Scheduling/Scheduling/ajaxSearchEmp",
+		type: "POST",
+		dataType: "JSON",
+		data: "order_id="+order_id+"&emp_name="+emp_name+"&emp_mobile="+emp_mobile+"&selectArea="+selectArea+"&region="+region,
+		success: function(data){
+			var empData = data;
+			var empLen = getLength(empData);
+			var i = 0;
+			var yellow = 0;
+			var blue = 0;
+			var str = '';
+			$(".empData").remove();
+			for(var key = 0; key < empLen; key++) {
+				i++;
+				str += '<tr id="'+order_id+'" class="empData">';
+				str += '<td align="center">'+i+'</td>\
+						<td><a href="#" onclick="selectEmp('+order_id+', '+empData[key]['emp_id']+', \''+empData[key]['emp_name']+'\')">选择</a></td>\
+						<td>'+empData[key]['emp_name']+'</td>\
+						<td>'+empData[key]['emp_mobile']+'</td>\
+						<td>'+empData[key]['emp_region']+'</td>\
+						<td><a href="/custom/crmorder/expressDetail?emp_id='+empData[key]['emp_id']+'" target="_blank">'+empData[key]['order_num']+'</a></td>\
+						<td>'+empData[key]['dayc_order']+'</td>\
+						<td>'+empData[key]['ep_status2']+'</td>\
+						<td>'+empData[key]['ep_status']+'</td>\
+						<td>'+empData[key]['c_position']+'</td>\
+						<td>'+empData[key]['c_area']+'</td>\
+					</tr>';
+			}
+			$("#emp").append(str);
+			if(data.length == 0){
+				$(".emp-none").html("暂无查询结果！");
+			}else{
+				$("#emp-load").hide();
+			}
+		}
+	})
+}
+/**
+ * 选择配送员
+ * @param	int	lgs_id		物流ID
+ * @param	int	order_id	订单ID
+ * @param	int	emp_id		配送员ID
+ * @param	int	emp_name	配送员姓名
+ * @return 
+ */
+function selectEmp(order_id, emp_id, emp_name) {
+	var orderArr = [];
+	$("input[name='order_check[]']:checked").each(function() {
+            orderArr.push($(this).val());
+    });
+	var lgs_id = '{$lgs_id}';
+	var thisClass = String(order_id) + String(lgs_id);
+	if(confirm("是否确认将订单改派给快递员"+emp_name+"?")){
+		$.ajax({
+			url: "/Scheduling/Scheduling/selectEmp",
+			type: "POST",
+			dataType: "text",
+			data: "lgs_id="+lgs_id+"&order_id="+order_id+"&emp_id="+emp_id+"&orderArr="+orderArr,
+			success: function(data){
+				if(data > 0){
+					$("input[name='order_check[]']:checked").each(function() {
+						socketUpdateOrder('{$username}', '{$empname}', $(this).val());
+						saveLocalStorage($(this).val(), '{$username}');
+						$(this).removeAttr("checked");
+    				});
+					alert("改派成功");
+					$("."+thisClass).html(emp_name);
+					closeDialog();
+				} else if(data == -10){
+					alert("请重新登录");
+				} else {
+					alert("改派失败");
+				}
+			}
+		})
+	}
+}
+</script>
+<div id="search">
+	<form name="searchFrom" id="empSearch" class="searchFrom" action="" method="get" onsubmit="ajaxSearchEmp({$order});return false;">
+	<table class="inputstyle" id="esc_order_id">
+		<tr>
+			<td width="20%">
+				<span>快递员姓名</span>
+				<input type="text" name="emp_name" id="emp_name" value="{$emp_name}" />
+			</td>
+			<td width="20%">
+				<span>快递员电话</span>
+				<input type="text" name="emp_mobile" id="emp_mobile" value="{$emp_mobile}" />
+			</td>
+			<td width="40%">
+				<input type="submit" name="search" id="allorder_search" value=" 搜 索 " />
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+<div id="tabs">
+<div id="list" class="listDialog">
+<table style="width:100%" id="order" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr id="orderLine">
+			<th>订单编号</th>
+			<th>餐厅名称</th>
+			<th>顾客地址</th>
+			<th>下单时间</th>
+			<th>要求送达时间</th>
+			<th>分配时间</th>
+			<th>状态</th>
+		</tr>
+		{section loop=$selectResult name=n}
+		<tr>
+			<td align="center"><a href='/custom/crmorder/order?order_id={$selectResult[n].order_id}' target="_blank">{$selectResult[n].order_sn}</a></td>
+			<td align="center">{$selectResult[n].seller_name}</td>
+			<td align="center">{$selectResult[n].address}</td>
+			<td align="center">{$selectResult[n].add_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td align="center">{$selectResult[n].request_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td align="center">{$selectResult[n].assign_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td align="center">{$orderStatus[$selectResult[n].status]}</td>
+		</tr>
+		{/section}
+</table>
+<input type="hidden" value="{$order_id}" id="order_id">
+
+	<table style="width:100%" id="emp" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr id="empLine">
+			<th>序号</th>
+			<th>操作</th>
+			<th>快递员姓名</th>
+			<th>送餐员联系方式</th>
+			<th>送餐员所属区域</th>
+			<th>订单数</th>
+			<th>今日完成订单数</th>
+			<th>在岗状态</th>
+			<th>状态</th>
+			<th>当前位置</th>
+			<th>当前区域</th>
+		</tr>
+		<tr id="emp-load">
+			<td colspan="14" align="center" class="emp-none">送餐员加载中...</td>
+		</tr>
+	</table>
+</div>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}

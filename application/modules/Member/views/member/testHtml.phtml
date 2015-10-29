@@ -1,0 +1,101 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="/application/modules/Custom/public/js/order.js"></script>
+<script type="text/javascript">
+</script>
+
+<div id="search">
+	<form name="searchFrom" class="searchFrom" id="searchFrom" action="" method="get" onsubmit="jquerySearch();return false;">
+	<table class="inputstyle">
+		<tr>
+			<td width="15%">
+				<span>订单编号</span>
+				<input type="text" name="order_sn" id="order_sn" value="{$order_sn}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>收货人用户名</span>
+				<input type="text" name="consignee" id="consignee" value="{$consignee}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>收货人电话</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" class="searchwidth" />
+			</td>
+			<td width="15%" id="searchstore">
+				<span>餐厅名称</span>
+				<!-- <input type="text" name="seller_name" id="seller_name" value="{$seller_name}" class="searchwidth" /> -->
+				<select name="store_name" id="store_name" class="">
+						{html_options options=$storeinfo}
+				</select>
+			</td>
+			<td width="40%" colspan="2">
+				<div class="floatLeft">
+					<span>城市 -> 区域</span>
+					<select name="parent_area" id="parent_area" class="">
+						{html_options options=$parent_areaList selected=$parent_area}
+					</select>
+				</div>
+				<div class="form-group floatLeft area-top">
+					<input type="hidden" id="havearea" value="{$area}" />
+					<select name="area[]" id="area" class="area" multiple="multiple">
+						{html_options options=$areaList selected={$area}}
+					</select>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="60%" colspan="4">
+				<span>合作伙伴</span>
+				<div class="form-group floatLeft">
+					<select name="partner[]" id="partner" class="area" multiple="multiple">
+						{html_options options=$partnerList}
+					</select>
+				</div>
+			</td>
+		</tr>
+		<tr align="center">
+			<td colspan="5">
+				<input type="hidden" value="neworder" id="order_type_region" />
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 " onclick="getParentArea(0)"/>
+				<input type="reset" value="显示全部新订单" onclick="showAll();return false;" />
+				<input type="hidden" id="socket_switch" value="1" />
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+ <a href="#" onclick="selectArea('10')">区域路线</a>
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr>
+			<th width="28px"><input type="checkbox" /></th>
+			<th>序号</th>
+			<th>订单编号</th>
+			<th>客户订单编号</th>
+			<th>合作伙伴</th>
+			<th>订单类型</th>
+			<th>下单时间</th>
+			<th>要求送达时间</th>
+			<!-- <th>订单金额</th>
+			<th>餐厅确认</th>
+			<th>收货人</th>
+			<th>收货人电话</th>
+			<th>收货地址</th>
+			<th>餐厅名称</th>
+			<th>区域</th>
+			<th>状态</th>
+			<th>快递员</th>
+			<th>联系电话</th> -->
+			<th>操作</th>
+			<th>接力 1</th>
+			<th>接力 2</th>
+			<th>接力 3</th>
+			<th>接力 4</th>
+			<th>接力 5</th>
+			<th>&nbsp;&nbsp;&nbsp;+&nbsp;&nbsp;&nbsp;</th>
+		</tr>
+		<tr id="order_tr">
+			<td colspan="19">加载中...</td>
+		</tr>
+	</table>
+</div>
+{include file="$app_path/application/views/footer.phtml"}

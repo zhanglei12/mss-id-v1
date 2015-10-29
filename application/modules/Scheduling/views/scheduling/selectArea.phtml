@@ -1,0 +1,195 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/jquery.json.min.js"></script>
+<script src="{$smarty.const.STATIC_URI}/id/js/scheduling.js"></script>
+<script>
+$(function() {
+	$(".listDialog input:not([type='checkbox']), .listDialog button").button();
+	getParentArea();
+	$("#parent_area").change(function(){
+		getParentArea();
+	})
+});
+var order_id = {$order_id};
+
+/**
+ * 添加行
+ * @param	str	lineId	ID
+ * @return 
+ */
+function addLine(lineId) {
+	var lineId = lineId;
+	var lineNum = lineId.substr(4);
+	var lineAddId = parseInt(lineNum) + 1;
+	var lineNextId = "line"+lineAddId;
+	var lineHtml = $("#"+lineId).html();
+	var newHtml = lineHtml.replace('['+lineNum+']', '['+lineAddId+']').replace('area'+lineNum, 'area'+lineAddId);
+	$(".lineButton").hide();
+	$("#"+lineId).after(
+		'<tr id="'+lineNextId+'" class="line">\
+		'+newHtml+'\
+		</tr>'
+	);
+}
+
+/**
+ * 删除行
+ * @param	str	lineId	ID
+ * @return 
+ */
+function delLine(lineId) {
+	var lineId = lineId;
+	var lineNum = lineId.substr(4);
+	var lineAddId = parseInt(lineNum) - 1;
+	var lineNextId = "line"+lineAddId;
+	$("#"+lineNextId).find(".lineButton").show();
+	$("#"+lineId).remove();
+}
+
+// 设置区域路线
+function setAreaLine() {
+	var areaArr = {};
+	var i = 0;
+	var relayEnd = $("#relayEnd").is(':checked');
+	if(!relayEnd) {
+		alert("最后一棒为必选项！");
+		return false;
+	}
+	$(".listArea").each(function() {
+		i++;
+		areaArr[i] = $(this).val();
+	})
+	
+	console.log(areaArr);
+	// var nary = areaArr;
+	// nary.sort();
+	// for(var i=1; i<=nary.length; i++) {
+		// if(nary[i] == nary[i+1]) {
+			// alert("区域选择重复！");
+			// return false;
+		// }
+	// }
+	
+	$.ajax({
+		url: "/Scheduling/Scheduling/setAreaLine",
+		type: "POST",
+		dataType: "JSON",
+		data: { "order_id": order_id, "areaArr": $.toJSON(areaArr) },
+		error: function(XMLHttpRequest){
+			alert("Error");
+		},
+		success: function(data){
+			if(data.status == 1) {
+				var dataInfo = data.data;
+				var relayHtml = '';
+				var i = 0;
+				var operate = $("#"+order_id).find(".operate");
+				var tdnextAll = operate.nextAll();
+				var tdnextAllLen = operate.nextAll().length;
+				
+				for(var key in dataInfo) {
+					i++;
+					if(dataInfo[key]['emp_id']) {
+						var emp_name = dataInfo[key]['emp_name'];
+					} else {
+						var emp_name = '配送员';
+					}
+					relayHtml += '<td>'+dataInfo[key]['region_name']+', <a href="#" id="'+dataInfo[key]['order_id']+dataInfo[key]['lgs_id']+'" onclick="selectCourier('+dataInfo[key]['lgs_id']+', '+dataInfo[key]['order_id']+')">'+emp_name+'</a></td>';
+				}
+				for(var key in tdnextAll) {
+					if(i < tdnextAllLen - 1) {
+						if(key > 0 && key <= i) {
+							tdnextAll[key].remove();
+						}
+					} else {
+						if(key > 0) {
+							tdnextAll[key].remove();
+						}
+					}
+				}
+				operate.after(relayHtml);
+				alert("区域路线设置成功");
+				closeDialog();
+			} else {
+				alert("区域路线设置失败");
+			}
+		}
+	});
+}
+
+// 重新规划区域路线
+function updateButton() {
+	$(".listArea").removeAttr("disabled");
+	$(".displayNone").show();
+	$(".updateButton").hide();
+}
+</script>
+<div id="list" class="listDialog">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<tr>
+			<th width="20px">始发区域</th>
+			<input name="startArea" type="hidden" value="{$regionArr.region_id_S}" />
+			<td width="30px">{$regionArr.region_name_S}</td>
+			<th width="20px">目的区域</th>
+			<input name="startArea" type="hidden" value="{$regionArr.region_id_E}" />
+			<td width="30px">{$regionArr.region_name_E}</td>
+		</tr>
+		{if $isNull == 0}
+		<tr id="line1" class="line">
+			<th width="20px">选择区域 [1]</th>
+			<td width="80px" colspan="3">
+				<select name="parent_area" id="parent_area" disabled="disabled">
+					{html_options options=$parent_areaList selected=$parent_id}
+				</select>
+				<select name="area1" class="listArea" id="area">
+					{html_options options=$selectArea selected=$region_id}
+				</select>
+				<span class="lineButton">
+					<input name="addLine" class="addLine" type="button" value="+" onclick="addLine($(this).parent().parent().parent().attr('id'));" />
+					<input name="addLine" class="delLine" type="button" value="-" onclick="delLine($(this).parent().parent().parent().attr('id'));" />
+					<label>
+						<input type="checkbox" name="relayEnd" id="relayEnd" checked="true" disabled="disabled" />最后一棒
+					</label>
+				</span>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="4" align="center">
+				<input name="confirm" type="button" value="确定" onclick="setAreaLine();" />
+				<input name="cancel" type="button" value="取消" onclick="closeDialog();" />
+			</td>
+		</tr>
+		{else}
+		{foreach from=$lgsInfo item=data}
+		<tr id="line{$data.relay_number}" class="line">
+			<th width="20px">区域 [{$data.relay_number}]</th>
+			<td width="80px" colspan="3">
+				<select name="parent_area" id="parent_area" disabled="disabled">
+					{html_options options=$parent_areaList selected=$parent_id}
+				</select>
+				<select name="area{$data.relay_number}" class="listArea" id="area" disabled="disabled">
+					{html_options options=$selectArea selected=$data.region_id}
+				</select>
+				<span>
+					<!-- <script language="javascript">lgsProgress({$data.status}, {$data.reception_time}, {$data.expected_delivery_time})</script> -->
+				</span>
+				<span class="lineButton" {if {$data.is_relay_end} != 1} style="display: none;" {/if}>
+					<input name="addLine" class="addLine displayNone" type="button" value="+" onclick="addLine($(this).parent().parent().parent().attr('id'));" />
+					<input name="addLine" class="delLine displayNone" type="button" value="-" onclick="delLine($(this).parent().parent().parent().attr('id'));" />
+					<label>
+						<input type="checkbox" name="relayEnd" id="relayEnd" checked="true" disabled="disabled" />最后一棒
+					</label>
+				</span>
+			</td>
+		</tr>		
+		{/foreach}
+		<tr>
+			<td colspan="4" align="center">
+				<input name="confirm" type="button" class="displayNone" value="确定" onclick="setAreaLine();" />
+				<input name="cancel" type="button" class="displayNone" value="取消" onclick="closeDialog();" />
+				<input name="cancel" type="button" class="updateButton" value="重新规划区域路线" onclick="updateButton();" />
+			</td>
+		</tr>
+		{/if}
+	</table>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}

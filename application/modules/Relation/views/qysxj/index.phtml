@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+      <title>区域操作上下架</title>
+      <style type="text/css">
+        body {
+             width:960px;margin : auto;font-family: "宋体";
+            }
+        h2  {
+          width:400px;
+          height:30px;
+          font-size:16px;
+          text-align: center;
+            }
+        a {
+          text-decoration: none;
+         }
+      </style>
+      <script  type="text/javascript"  src="/public/js/jquery-1.10.2.min.js"></script>
+      <script  type="text/javascript"  src="/public/js/jquery-ui-1.10.4.min.js"></script>
+      <link href="/public/css/jquery-ui-1.10.4.css" rel="stylesheet" type="text/css">
+      <script type="text/javascript">
+      $(function(){
+          var jieguo="";
+          $('.shangxiajia').click(function()
+          {  
+          var shangxiajiatishi=$(this).val();       //获取你点击的批量上下架还是批量下架的值
+          var quyu_id=$(this).find('input').val();   //获取区域的id
+          $.ajax({
+              type:'POST',
+              url:'chuli',
+              data:{
+                  quyu_id:quyu_id,
+                  shangxiajiatishi:shangxiajiatishi,
+                  },
+              success:function(response, status, xhr)
+                {
+                  jieguo=response;//获取结果集
+
+
+                }
+                 });
+               });
+               
+               $(document).ajaxStart(function () 
+               {
+                  $('.loading').dialog
+                  ({
+                    width:500,
+                    height:300,
+                    title:'处理中,请勿关闭,若不小心关闭,请重新点击',
+                  });
+               }).ajaxSuccess(function()
+               {  
+                  
+                  $('.loading').dialog('close');
+                  alert("当前店铺下id为"+jieguo+"失败");
+                 
+
+                });
+               
+                 
+              });
+
+         </script>
+  </head>
+<body>
+  <h2>百度区域上下架</h2>
+  <div class="loading"  style="width:300px;height:100px;display:none;"/>
+    <img src="/public/img/ajax-loader.gif"/>
+  </div>
+  <table border="1" cellpadding="0" cellspacing="0">
+    <tr>
+       <th>区域id</th>
+       <th>区域名称</th>
+       <th>操作</th>
+    </tr>
+  {foreach from=$sqlqylist  item=value}
+    <tr>
+      <td>{$value.region_id}</td>
+      <td>{$value.region_name}</td> 
+      <td width="200" align='center'>
+      <button class='shangxiajia' value="2"><font color='red'>批量上架 </font>
+        <input type="hidden" value='{$value.region_id}'/>
+      </button>  &nbsp;&nbsp;&nbsp; 
+      <button class='shangxiajia' value='1'><font color='blue'>批量下架</font>
+        <input type="hidden" value='{$value.region_id}'/>
+      </button>
+      </td>    
+    </tr>
+  {/foreach}
+</table>   
+ </body>
+</html>

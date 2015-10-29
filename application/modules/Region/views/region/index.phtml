@@ -1,0 +1,866 @@
+{include file="{$app_path}/application/views/index/header.phtml"}
+	<link rel="stylesheet" href="/public/css/zTreeStyle/zTreeStyle.css" type="text/css">
+	<script type="text/javascript" src="/public/js/jquery.ztree.all-3.5.min.js"></script>
+	<div class="content">
+
+			<div class="region_head" style='height:50px;'>
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='region_edit'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">显示所有区域</a></span>
+				</div>
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='region_edit_show'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">只查看显示区域</a></span>
+				</div>
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='parent_add'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">添加一级区域</a></span>
+				</div>
+
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='region_show'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">显示所勾选的区域</a></span>
+				</div>
+
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='region_hidden'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">隐藏所勾选的区域</a></span>
+				</div>
+
+			</div>
+
+			<div id='region'>
+				<ul id="treeDemo" class="ztree"></ul>
+			</div>
+	</div>
+
+	<div id='region_edit'  title='区域管理'> <!--region编辑的弹出框-->
+	</div>
+
+	<div id='region_result' title='区域处理结果'>  <!--region的处理结果弹出框-->
+
+	</div>
+
+	<div id='region_error'  title='区域管理'> <!--区域错误的弹出框-->
+	</div>
+</body>
+</html>
+{literal}
+<SCRIPT type="text/javascript">
+		var setting = {
+			check:{
+				enable: true,
+				chkStyle: "checkbox",
+				chkboxType: { "Y":"s", "N":"s" }
+			},
+			view:{
+				addHoverDom: addHoverDom,
+				removeHoverDom: removeHoverDom,
+			},
+			edit:{
+				enable: true,
+				showRemoveBtn:false,
+			},
+
+			data: {
+				key:{
+					name:'region_name',
+				},
+				simpleData: {
+					enable: true,
+					idKey:'region_id',
+					pIdKey:'parent_id',
+					rootPId :null,
+				}
+			},
+			callback:{
+				beforeEditName: beforeEditName,
+			}
+		};
+
+		var log, className = "dark";
+
+
+		function status_identification()
+		{
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+			var node = zTree.getNodesByParam("is_visibility",0,null);
+
+			if(node.length<3)
+			{
+				return false;
+			}
+			
+			$.each(node,function(k,v){
+
+				var id = v.tId;
+
+				var html = v.region_name+'<span>(隐藏区域)</span>';
+
+				//设置ul的为显示
+
+				zTree.expandAll(true);
+
+				$("#"+id+"_span").html(html);
+
+				$("#"+id+"_span").css('color','#FF6666');
+				
+			});	
+		  
+		}
+		
+		
+		function beforeEditName(treeId, treeNode) 
+		{
+			
+			var  region_name = treeNode.region_name;
+			var  region_id = treeNode.region_id;
+			var  level = treeNode.level;
+	
+			if(region_name.length<1 || region_id.length<1)
+			{
+				alert("修改区域的参数缺失");
+				return false;
+			}
+
+			var append_html = '';
+
+			if(level == '2')
+			{
+				//获取区域配送范围
+				$.ajax({
+					type:'post',
+					url:'/region/region/zone',
+					dataType:'json',
+					data:{'region_id':region_id},
+					async:false,
+					success:function(result)
+					{
+							append_html +="<br/>";
+							if(result.state=='-3')
+							{
+									//这个区域还没有设置区域范围
+									append_html+='<label for="zone">区域范围值:</label>';
+									append_html +="<br/>";
+					 				append_html+='<textarea style="width:450px;height:110px"  name="zone" class="ui-widget-content ui-corner-all"></textarea>';
+					 				append_html+= '<div style="color:red">(当前区域还没有区域范围,请设置)</div>';
+					 				append_html+='<div style="color:red;font-size:0.9em">*规则:经度 纬度,经度 纬度 例：116.324787 40.018786,116.324787 40.018786,所有英文字母在提交的时候会被自动屏蔽，一定要按照规则写，经纬度排序不分先后</div>';
+							}else if(result.state == '1')
+							{
+									//区域范围正常获取
+									append_html+='<label for="zone">区域范围值:</label>';
+									append_html +="<br/>";
+					 				append_html+= '<textarea style="width:450px;height:110px"  name="zone" class="ui-widget-content ui-corner-all">'+result.data.ploygongeo+'</textarea>';
+					 				append_html+='<div style="color:red;font-size:0.9em">*规则:经度 纬度,经度 纬度 例：116.324787 40.018786,116.324787 40.018786,所有英文字母在提交的时候会被自动屏蔽，一定要按照规则写，经纬度排序不分先后</div>';
+					 		}else
+					 		{
+					 				//获取区域范围失败
+					 				append_html+='<div>获取区域范围时失败:具体情况:<span style="color:red">'+result.message+'</span></div>';
+					 		}
+					}
+				});
+			}
+
+
+		 var html = '<form><fieldset class="ui-helper-reset">';
+			 html+= '<input type="hidden" name="region_edit" value="'+region_id+'">'
+			 html+= '<label for="region">区域名:</label>';
+			 html+= '<input type="text" name="region" value="'+region_name+'" class="ui-widget-content ui-corner-all">';
+			 if(level == '2')
+			 {
+			 	html +=append_html;
+			 }
+
+			 html+="<div style='width:100%;height:10px;clear:both'>&nbsp;&nbsp;</div>";
+			
+			 html+='</fieldset></form>';
+			 
+			 html+='<div class="error_show" style="color:red"></div>';
+			 
+			$("#region_edit").html(html);
+			
+			$("#region_edit").dialog({
+				modal: true,
+				height:400,
+				width:500,
+				buttons: {
+					"修改": function(){
+						//编辑区域
+						var region_id = $("input[name='region_edit']").val();
+						var region_name = $("input[name='region']").val();
+
+						if(region_name=='')
+						{
+							$(".error_show").html("请填写区域名字");
+							return false;
+						}
+						
+						$.post('/region/region/edit',{'region_id':region_id,'region_name':region_name},function(result){
+								
+							if(result.state!='1')
+							{
+								$(".error_show").html(result.message);
+								return false;
+							}else
+							{
+								if(level != '2')
+								{
+									//编辑区域成功
+									$("#"+treeNode.tId+"_span").html(region_name);
+									treeNode.region_name = region_name;
+
+									treeNode.region_name = region_name;
+									var html = '编辑区域成功';
+									$("#region_result").html(html);
+									$("#region_result").dialog();
+									$("#region_edit").dialog("close");
+								}else
+								{
+									//进行区域的编辑
+									var zone = $("textarea").val();
+									if(zone.length<1)
+									{
+										$(".error_show").html("请填写区域范围");
+										return false;
+									}
+									$.ajax({
+										type:'post',
+										dataType:'json',
+										url:'/region/region/zone_edit',
+										data:{'region_id':region_id,'zone':zone},
+										async:'false',
+										success:function(result)
+										{
+											if(result.state!='1')
+											{
+												$(".error_show").html(result.message);
+												return false;
+											}
+
+											$("#"+treeNode.tId+"_span").html(region_name);
+											treeNode.region_name = region_name;
+
+											treeNode.region_name = region_name;
+											var html = '编辑区域成功';
+											$("#region_result").html(html);
+											$("#region_result").dialog();
+											$("#region_edit").dialog("close");
+										}
+
+									});
+
+								}
+							}
+							
+						},'json');
+						 
+					},
+					"取消": function(){
+						$(this).dialog("close");
+					}
+				},
+			});
+			
+			
+			$("#region_edit").dialog("open");
+			$("#region_edit").buttonset();
+
+			return false;
+		}	
+
+		
+
+		var newCount = 1;
+
+		function addHoverDom(treeId, treeNode){
+			
+			var sObj = $("#" + treeNode.tId + "_span");
+			if (treeNode.editNameFlag || $("#addBtn_"+treeNode.tId).length>0) return;
+
+			var addStr = "<span class='button add' id='addBtn_" + treeNode.tId
+				+ "' title='添加新子区域' onfocus='this.blur();'></span>";
+			
+			sObj.after(addStr);
+
+			var btn = $("#addBtn_"+treeNode.tId);
+			if (btn) btn.bind("click", function(){
+
+				var level = treeNode.level;
+
+				if(level >=  '3')
+				{
+					//已是第四级区域
+					var html = '<div>当前区域已经是最后一级区域，无法创建下级区域</div>';
+
+					$("#region_error").html(html);
+					
+					$("#region_error").dialog();
+
+					return false;
+				}
+
+				var append_html = '';
+
+				if(level == '1')
+				{
+					append_html+='<br/>';
+					append_html+='<label for="zone">区域范围值:</label>';
+					append_html+='<br/>';
+	 				append_html+='<textarea  style="width:450px;height:110px" name="zone" class="ui-widget-content ui-corner-all"></textarea>';
+	 				append_html+='<div style="color:red;font-size:0.9em">*规则:经度 纬度,经度 纬度 例：116.324787 40.018786,116.324787 40.018786,所有英文字母在提交的时候会被自动屏蔽，一定要按照规则写，经纬度排序不分先后</div>';
+				}
+
+
+				//添加新区域
+				 var html = '<form><fieldset class="ui-helper-reset">';
+				 html+= '<input type="hidden" name="parent_id" value="'+treeNode.region_id+'">';
+				 html+= '上级区域:<input type="text" disabled="disabled" value="'+treeNode.region_name+'">';
+				 html+='<br/>';
+				 html+= '<label for="region">子区域名:</label>';
+				 html+= '<input type="text" name="region" value="" class="ui-widget-content ui-corner-all">';
+				 html+=append_html;
+				 html+="<div style='width:100%;height:10px;clear:both'>&nbsp;&nbsp;</div>";
+				 html+="<div id=\"is_visibility\">&nbsp;&nbsp;&nbsp;";
+
+				 
+			 	 html+="<input type=\"radio\" id=\"radio1\" name=\"is_visibility\"  value='1' checked=\"checked\"><label for=\"radio1\">显示</label>";
+			 	 html+="<input type=\"radio\" id=\"radio2\" name=\"is_visibility\" value='0'><label for=\"radio2\">隐藏</label>";
+			 
+				
+				 html+="</div>";
+
+				 html+='</fieldset></form>';
+
+				 
+				 html+='<div class="error_show" style="color:red"></div>';
+				 
+				$("#region_edit").html(html);
+				
+				$("#region_edit").dialog({
+					modal: true,
+					height:400,
+					width:500,
+					buttons: {
+						"添加": function(){
+							//编辑区域
+							var parent_id = $("input[name='parent_id']").val();
+							var region_name = $("input[name='region']").val();
+							var is_visibility = $("input[name='is_visibility']:checked").val();
+		
+							if(region_name=='')
+							{
+								$(".error_show").html("请填写区域名字");
+								return false;
+							}
+							$.post('/region/region/add',{'parent_id':parent_id,'region_name':region_name,'is_visibility':is_visibility,},function(result){
+								
+								if(result.state!='1')
+								{
+									$(".error_show").html(result.message);
+									return false;
+								}else
+								{
+
+									if(level == '1')
+									{
+										var zone = $("textarea").val();
+										var judge = 'true';
+										if(zone.length<1)
+										{
+											$(".error_show").html('请填写区域范围');
+											return false;
+										}
+
+										$.ajax({
+											type:'post',
+											dataType:'json',
+											url:'/region/region/zone_add',
+											data:{'region_id':result.data,'zone':zone,'region_name':region_name},
+											async:'false',
+											success:function(result)
+											{
+												if(result.state !='1')
+												{
+													$(".error_show").html(result.message);
+													judge = 'false';
+													return false;
+												}
+											}
+										});
+
+										if(judge == 'false')
+										{
+											return false;
+										}
+									}
+
+									alert('添加新的子区域成功!');
+
+									var region_id = result.data;
+
+									//展示
+
+									var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+		
+									zTree.addNodes(treeNode, {id:(100 + newCount), pId:treeNode.id,region_name:region_name,name:region_name,region_id:result.data,'is_visibility':is_visibility,parent_id:parent_id});
+
+									var node = zTree.getNodeByParam("region_id",region_id,null);
+
+									if(is_visibility =='0')
+									{
+										//当前区域为隐藏的
+
+										var html = region_name+'<span>(隐藏)</span>';
+
+										$("#"+node.tId+"_span").html(html);
+
+										$("#"+node.tId+"_span").css('color','#FF6666');
+
+									}
+
+									if(is_visibility =='1')
+									{
+										//如果当前区域为显示的，则上级区域也得显示
+
+										//选中上级区域
+
+											var new_check_region = '';
+
+											var checked_nodes  = new Array();
+
+											checked_nodes.unshift(node);
+
+											for(var i =0;i<4;i++)
+											{
+
+												var new_node = checked_nodes[0].getParentNode();
+
+												if(new_node == null)
+												{
+													break;
+												}else
+												{
+													
+													checked_nodes.unshift(new_node);
+											
+													new_check_region+=new_node.region_name;
+													new_check_region+='<---';
+											
+												}
+											}
+
+											var html = '<div>上架操作将连带上级区域也显示:</div>';
+												html+= '<div>'+new_check_region+'</div>';
+
+											$("#region_result").html(html);
+
+											$("#region_result").dialog();
+
+
+											var region_ids = " ";
+
+											$.each(checked_nodes,function(k,node){
+												region_ids+=node.region_id+',';
+											});
+
+											//上架选中的区域
+											
+											$.post('/region/region/up_and_down',{'region_ids':region_ids,'is_visibility':'1'},function(result){
+
+													if(result.state!='1')
+													{
+														var html = "区域显示失败";
+														$("#region_error").html(html);
+														$("#region_error").dialog();
+														return false;
+													}
+
+
+														var html = "区域显示成功";
+
+														$("#region_error").html(html);
+
+														$("#region_error").dialog();
+
+														$.each(checked_nodes,function(k,node){
+
+															var region_name = node.region_name;
+
+															$("#"+node.tId+"_span").html(region_name);
+
+															$("#"+node.tId+"_span").css('color','black');
+														});
+											},'json');
+									}
+
+									$("#region_edit").dialog("close");
+
+									return false;
+									
+
+								}
+								
+							},'json');
+							
+						},
+						"取消": function(){
+							$(this).dialog("close");
+						}
+					},
+				});
+			
+			
+			$("#region_edit").dialog("open");
+			$("#region_edit").buttonset();
+
+		});
+			
+	};
+		function removeHoverDom(treeId, treeNode)
+		{
+			$("#addBtn_"+treeNode.tId).unbind().remove();
+		};
+
+		
+
+		var zNodes = '';
+
+		$(document).ready(function(){
+			$.ajax({
+	            type: "POST",
+	            url: "region",
+	            dataType: "json",
+	            async:false,
+	            success: function(result)
+	            {
+	            	if(result.state!='1')
+	            	{
+	            		var html = '<div>提取区域失败</div>';
+
+						$("#region_edit").html(html);
+				
+						$("#region_edit").dialog();
+
+	            	}else
+	            	{
+	            		zNodes = result.data;
+	            		$.fn.zTree.init($("#treeDemo"),setting,zNodes);
+
+	            	}
+	                      
+	            }
+            });
+
+		});
+</SCRIPT>
+<script type='text/javascript'>
+	$(function(){
+		//显示所有区域
+		$(document).on("click",".region_edit",function(){
+			$.ajax({
+	            type: "POST",
+	            url: "region",
+	            dataType: "json",
+	            data:{"visibility":'true'},
+	            async:false,
+	            success: function(result)
+	            {
+	            	if(result.state!='1')
+	            	{
+	            		var html = '<div>提取区域失败</div>';
+
+						$("#region_edit").html(html);
+				
+						$("#region_edit").dialog();
+	            	}else
+	            	{
+	            		zNodes = result.data;
+	            		$.fn.zTree.init($("#treeDemo"),setting,zNodes);
+	            		status_identification();
+	            	}
+	               
+	            }
+           	 });
+		});
+
+		//只显示在线区域
+
+		$(document).on("click",".region_edit_show",function(){
+			$.ajax({
+	            type: "POST",
+	            url: "region",
+	            dataType: "json",
+	            async:false,
+	            success: function(result)
+	            {
+	            	if(result.state!='1')
+	            	{
+	            		var html = '<div>提取隐藏区域失败</div>';
+
+						$("#region_edit").html(html);
+				
+						$("#region_edit").dialog();
+
+	            	}else
+	            	{
+	            		zNodes = result.data;
+	            		$.fn.zTree.init($("#treeDemo"),setting,zNodes);
+
+	            	}
+	                      
+	            }
+           });
+
+		});
+
+		//添加一级区域
+		$(document).on('click','.parent_add',function(){
+				var html = '<form><fieldset class="ui-helper-reset">';
+
+				 html+= '<label for="region">&nbsp;一级区域:</label>';
+				 html+= '<input type="text" name="region" value="" class="ui-widget-content ui-corner-all">';
+				 html+="<div style='width:100%;height:10px;clear:both'>&nbsp;&nbsp;</div>";
+				 html+="<div id=\"is_visibility\">&nbsp;&nbsp;&nbsp;";
+
+				 html+= '<label for="is_visibility">&nbsp;&nbsp;状态:</label>';
+			 	 html+="<input type=\"radio\" id=\"radio1\" name=\"is_visibility\"  value='1' checked=\"checked\"><label for=\"radio1\">显示</label>";
+			 	 html+="<input type=\"radio\" id=\"radio2\" name=\"is_visibility\" value='0'><label for=\"radio2\">隐藏</label>";
+			 
+				
+				 html+="</div>";
+
+				 html+='</fieldset></form>';
+
+				 
+				 html+='<div class="error_show" style="color:red"></div>';
+				 
+				$("#region_edit").html(html);
+
+				$("#region_edit").dialog({
+						//添加区域的弹框操作
+						modal: true,
+						buttons: {
+						 "添加": function(){
+
+							var region_name = $("input[name='region']").val();
+							var is_visibility = $("input[name='is_visibility']:checked").val();
+
+							if(region_name=='')
+							{
+								$(".error_show").html("请填写区域名字");
+								return false;
+							}
+
+
+							$.post('/region/region/parent_add',{'region_name':region_name,'is_visibility':is_visibility},function(result){
+
+									if(result.state!='1')
+									{
+										$(".error_show").html(result.message);
+										return false;
+									}
+
+									//增加节点
+									var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+									zTree.addNodes(null,{id:(100 + newCount),region_name:region_name,name:region_name,region_id:result.data,is_visibility:is_visibility});
+
+									//处理添加后的结果(上架或下架)
+
+									//新增加的区域
+									var node = zTree.getNodeByParam("region_id",result.data,null);
+
+									var id = node.tId;
+
+									
+									if(is_visibility=='0')
+									{
+
+										var html = region_name+"<span>(隐藏)</span>";
+
+										$("#"+id+"_span").html(html);
+
+										$("#"+id+"_span").css('color','#FF6666');
+									}else
+									{
+										var html = region_name;
+
+										$("#"+id+"_span").html(html);
+									}
+									
+
+									$("#region_edit").dialog("close");
+
+							},'json');
+
+						}
+					}
+
+				});
+				$("#region_edit").buttonset();
+
+		});
+
+
+		//下架区域(只下架当前区域和当前区域下的子区域)
+		
+		$(document).on('click','.region_hidden',function(){
+
+			if(!confirm("确实要隐藏所选择的区域吗?"))
+			{
+				return false;
+			}
+
+
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+			var checked_nodes = zTree.getCheckedNodes(true);
+
+			if(checked_nodes.length<1)
+			{
+				alert("未选中区域");
+				return false;
+			}
+
+			var region_ids = " ";
+
+			$.each(checked_nodes,function(k,node){
+				region_ids+=node.region_id+',';
+			});
+
+			//下架选中的区域
+
+			$.post('/region/region/up_and_down',{'region_ids':region_ids,'is_visibility':'0'},function(result){
+
+					if(result.state!='1')
+					{
+						var html = "区域隐藏失败";
+						$("#region_error").html(html);
+						$("#region_error").dialog();
+						return false;
+					}
+
+
+						var html = "区域隐藏成功";
+
+						$("#region_error").html(html);
+
+						$("#region_error").dialog();
+
+						$.each(checked_nodes,function(k,node){
+
+							var html = $("#"+node.tId+"_span").html();
+
+							html  = html+"(隐藏)";
+
+							$("#"+node.tId+"_span").html(html);
+
+							$("#"+node.tId+"_span").css('color','#FF6666');
+						});
+
+
+			},'json');
+
+
+		});
+	
+
+	 	//上架区域(上架当前区域和当前区域下的子区域外加直线上级区域)
+		
+		$(document).on('click','.region_show',function(){
+
+			if(!confirm("确实要显示所选择的区域吗?"))
+			{
+				return false;
+			}
+
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+			var checked_nodes = zTree.getCheckedNodes(true);
+
+
+			if(checked_nodes.length<1)
+			{
+				alert("未选中区域");
+
+				return false;
+			}
+
+			//选中上级区域
+
+			var new_check_region = '';
+
+			for(var i =0;i<4;i++)
+			{
+
+				var node = checked_nodes[0].getParentNode();
+
+				if(node == null)
+				{
+					break;
+				}else
+				{
+					checked_nodes.unshift(node);
+
+					//node为选中
+
+					zTree.checkNode(node,true,false);
+
+					
+					new_check_region+=node.region_name;
+					new_check_region+='<---';
+				
+				}
+			}
+
+			var html = '<div>上架操作将连带上级区域也显示:</div>';
+				html+= '<div>'+new_check_region+'</div>';
+
+			$("#region_result").html(html);
+
+			$("#region_result").dialog();
+
+
+			var region_ids = " ";
+
+			$.each(checked_nodes,function(k,node){
+				region_ids+=node.region_id+',';
+			});
+
+			//上架选中的区域
+			
+			$.post('/region/region/up_and_down',{'region_ids':region_ids,'is_visibility':'1'},function(result){
+
+					if(result.state!='1')
+					{
+						var html = "区域显示失败";
+						$("#region_error").html(html);
+						$("#region_error").dialog();
+						return false;
+					}
+
+
+						var html = "区域显示成功";
+
+						$("#region_error").html(html);
+
+						$("#region_error").dialog();
+
+						$.each(checked_nodes,function(k,node){
+
+							var region_name = node.region_name;
+
+							$("#"+node.tId+"_span").html(region_name);
+
+							$("#"+node.tId+"_span").css('color','black');
+
+						});
+
+
+			},'json');
+
+		});
+
+	});
+</script>
+{/literal}

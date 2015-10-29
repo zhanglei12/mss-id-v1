@@ -1,0 +1,195 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script type="text/javascript" src="{$smarty.const.STATIC_URI}/id/js/jquery.bigpage.js"></script>
+<link href="{$smarty.const.STATIC_URI}/id/css/jquery.bigpage.css" rel=”stylesheet” type=”text/css” />
+<script>
+$(document).ready(function() {
+	discolor();
+	$("button").button();
+	ajaxPage();
+});
+// 添加菜品
+function addGoods() {
+	$("#if_goods_change").val("0");
+	var order_id = $("#order_id").val();
+	var store_id = $("#store_id").val();
+	var params = [];
+	var goods = getGoodsId();
+	$('input:checkbox:checked').each(function() {
+            params.push($(this).val());
+        });
+	$.ajax({
+		type: "POST",
+		datatype: 'json',
+		url: "/custom/crmorder/adddishes",
+		data: "params="+params+"&store_id="+store_id+"&order_id="+order_id+"&goods_id="+goods,
+		error: function(XMLHttpRequest){
+			alert("Error");
+		},
+		success: function(result){
+			var invoice = $("#invoice").val();
+			result = eval(result);
+			for(var key in result){
+				if(key == "pushEx"){
+					closeDialog();
+					return false;
+				}
+				//判断描述是否为null
+				if(result[key].description == null){
+					var desc = '';
+				}else{
+					desc = result[key].description;
+				}
+				//判断价格是否为null
+				if(result[key].price == null){
+					var pri = '0.00';
+				}else{
+					pri = result[key].price;
+				}
+				//判断有票无票
+				if(invoice == null){
+					discount = result[key].nreceipt_discount;
+				}else{
+					discount = result[key].receipt_discount;
+				}
+		  	$("#goods_tr").after(
+				'<tr id="'+result[key].goods_id+'" class="discolor goods">\
+				<td align="center">'+result[key].goods_name+'</td>\
+				<td align="center"><input type="text" value="'+1+'" class="quantity changetext" style="width:80px;text-align:right;"></td>\
+				<td align="center"><input type="text" value="'+pri+'" class="price changetext" style="width:80px;text-align:right;"></td>\
+				<td align="center"><input type="text" value="'+result[key].packing_fee+'" class="packing_fee changetext" style="width:80px;text-align:right;"></td>\
+				<td align="center">'+result[key].spec_name_1+' </td>\
+				<td align="center"><input type="text" value="'+desc+'" class="goods_remark" style="width:200px" ></td>\
+				<td align="right" class="discount">'+discount+'</td>\
+				<td align="right">'+result[key].member_price+'</td>\
+				<td align="right">'+result[key].nreceipt_discount+' </td>\
+				<td align="right">'+result[key].receipt_discount+'</td>\
+				<td align="center"><a href="#" onclick="dropGoods('+result[key].goods_id+');return false;">删除</a></td>\
+				<input type="hidden" value="'+result[key].default_spec+'" class="spec_id" >\
+				<input type="hidden" value="'+discount+'" class="goods_discount" >\
+				</tr>'); 
+			updatefee();
+			}
+			$("#goods_none").hide();
+			closeDialog();
+		}
+	});
+};
+// jquery搜索
+function jquerySearch() {
+	$(".searchgoods").remove();
+	var goods_name_S	= $.trim($("#goods_name").val());
+	if(!goods_name_S){
+		ajaxPage();
+		return false;
+	}
+	var store_id = {$store_id};
+	$.ajax({
+		url: "/custom/crmorder/searchGoods",
+		type:"POST",
+		data:"goods_name="+goods_name_S+"&store_id="+store_id,
+		success:function(response){
+			var  arr=jQuery.parseJSON(response);
+			$.each(arr.data,function(k,index){
+				var  val = index;
+				$("#store-goods").append('<tr class="discolor searchgoods"><td><input type="checkbox" name="goods_id[]" value='+val.goods_id+'></td><td>'+val.goods_name+'</td><td>'+val.price+'</td><td>'+val.discount_price+'</td><td>'+val.cate_name+'</td><td>'+val.price+'</td><td>'+val.price+'</td><td>'+val.member_price+'</td><td>'+val.nreceipt_discount+'</td><td>'+val.receipt_discount+'</td><td>'+val.packing_fee+'</td></tr>');
+			});
+		$("#current-page").html('1');
+		$("#total-page").html('1');
+		}
+	});
+}
+
+//ajax 分页
+function ajaxPage(num) {
+	$(".searchgoods").remove();
+	var goods_arr = getGoodsId();
+	var pi = $("#current-page").val();
+	var pc = $("#total-page").html();
+	var store_id = {$store_id};
+	if(num == 1){
+		pi = parseFloat(pi) + 1;
+	}else{
+		pi = parseFloat(pi) - 1;
+	}
+	if(pi > pc){
+		pi = pc;
+	}else if(pi < 1){
+		pi = 1;
+	}
+	$("#current-page").val(pi);
+	$.ajax({
+		url: "/custom/crmorder/ajaxAddGoods",
+		type:"POST",
+		data:"pi="+pi+"&store_id="+store_id,
+		success:function(response){
+			var  arr=jQuery.parseJSON(response);
+			var  str="";
+			$.each(arr.data,function(k,index){
+				var  val = index;
+				str+='<tr class="discolor searchgoods"><td>';
+				if($.inArray(val.goods_id,goods_arr) > -1){
+
+					str+='<input type="checkbox" name="goods_id[]" checked disabled="disabled" value='+val.goods_id+'>';
+				}else{
+					str+='<input type="checkbox" name="goods_id[]" value='+val.goods_id+'>';
+				}
+				str+='</td><td>'+val.goods_name+'</td><td>'+val.price+'</td><td>'+val.discount_price+'</td><td>'+val.cate_name+'</td><td>'+val.price+'</td><td>'+val.price+'</td><td>'+val.member_price+'</td><td>'+val.nreceipt_discount+'</td><td>'+val.receipt_discount+'</td><td>'+val.packing_fee+'</td></tr>';
+			});
+			$("#store-goods").append(str);
+		}
+	});
+	var total = '{$count_goods}';
+	$("#total-page").text(total);
+}
+</script>
+<div class="add_goods" id="tabs">
+<div id="list">
+	<form name="searchFrom" class="searchFrom" id="searchFrom" action="" method="get" onsubmit="jquerySearch();return false;">
+		菜品名称
+		<input type="text" id="goods_name" />
+		<input type="submit" name="search" value=" 搜 索 " /><br />
+	</form>
+	<table id="store-goods" style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<thead>
+		<tr id="order_tr">
+			<th></th>
+			<th>菜品名称</th>
+			<th>单价</th>
+			<th>促销价</th>
+			<th>全局菜品类别</th>
+			<th>菜品类别</th>
+			<th>规格</th>
+			<th>会员价</th>
+			<th>无票折扣</th>
+			<th>有票折扣</th>
+			<th>包装费</th>
+		</tr>
+		</thead>
+<!-- 		{foreach from=$addgoods item=add}
+		<tr class="discolor searchgoods">
+			<td><input type="checkbox" value="{$add.goods_id}" name="goods_id[]" {if $have_goods != '' && in_array($add.goods_id,$have_goods)}checked disabled{/if}/>
+			</td>
+			<td name="goods_name">{$add.goods_name}</td>
+			<td>{$add.price}</td>
+			<td>{$add.discount_price}</td>
+			<td>{$add.cate_name}</td>
+			<td>{$add.price}</td>
+			<td>{$add.spec_name_1}</td>
+			<td>{$add.member_price}</td>
+			<td>{$add.nreceipt_discount}</td>
+			<td>{$add.receipt_discount}</td>
+			<td>{$add.packing_fee}</td>
+		</tr>
+		{/foreach}
+			<tr id="goods_tr">
+			<td colspan="11"></td>
+		</tr> -->
+	</table>
+	<input type="hidden" id="store_id" value="{$store_id}">
+	<input type="hidden" id="order_id" value="{$order_id}">
+	<div id="show-page">
+		<a href="javascript:void(0)" onclick="ajaxPage(0)">上一页</a>
+		<a href="javascript:void(0)" onclick="ajaxPage(1)">下一页</a>当前第<input type="text" id="current-page" value="1" style="width:30px;">页共<span id="total-page">{$count_goods}</span>页<button onclick="addGoods();return false;">确认</button>
+	</div>
+</div>
+</div>

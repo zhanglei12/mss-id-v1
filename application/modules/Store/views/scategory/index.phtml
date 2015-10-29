@@ -1,0 +1,643 @@
+{include file="{$app_path}/application/views/index/header.phtml"}	
+	<!--分类管理页面-->
+
+	<link rel="stylesheet" href="/public/css/zTreeStyle/zTreeStyle.css" type="text/css">
+	<script type="text/javascript" src="/public/js/jquery.ztree.all-3.5.min.js"></script>
+
+	 <div class="content">
+			<div class="region_head" style='height:50px;'>
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='scategory_edit_all'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">显示全部分类</a></span>
+				</div>
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='scategory_edit'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">只显示在线分类</a></span>
+				</div>
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='parent_add'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">添加一级分类</a></span>
+				</div>
+
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='cate_show'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">显示所勾选的分类</a></span>
+				</div>
+
+
+				<div class="dianpu"  style='width:15%;float:left;margin-left:1%;'>
+					<span class='cate_hidden'><img src="/public/img/xinjian.gif"><a href="javascript:void(0);">隐藏所勾选的分类</a></span>
+				</div>
+
+			</div>
+	 </div>
+
+	<div id='scategory'>
+		<ul id="treeDemo" class="ztree"></ul>
+	</div>
+
+	<div id='scategory_edit'  title='分类管理'> <!--分类编辑的弹出框-->
+
+	</div>
+
+
+	<div id='scategory_error'  title='分类管理'> <!--分类错误的弹出框-->
+
+	</div>
+
+
+	</body>
+</html>
+
+{literal}
+<SCRIPT type="text/javascript">
+		var setting = {
+			check:{
+				enable: true,
+				chkStyle: "checkbox",
+				chkboxType: { "Y":"s", "N":"s" }
+			},
+			view: {
+				addHoverDom: addHoverDom,
+				removeHoverDom: removeHoverDom,
+			},
+			edit: {
+				enable: true,
+				showRemoveBtn:false,
+			},
+
+			data: {
+				key:{
+					name:'cate_name',
+				},
+				simpleData: {
+					enable: true,
+					idKey:'cate_id',
+					pIdKey:'parent_id',
+					rootPId :null,
+				}
+			},
+			callback:{
+				beforeEditName: beforeEditName,
+			}
+		};
+
+
+		var newCount = 1;
+
+		//显示区域级别
+
+
+		function status_identification()
+		{
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+			var node = zTree.getNodesByParam("weixin",0,null);
+
+			if(node.length<3)
+			{
+				return false;
+			}
+			
+			$.each(node,function(k,v){
+
+				var id = v.tId;
+
+				var html = v.cate_name+'<span>(隐藏)</span>';
+
+				//设置ul的为显示
+
+				zTree.expandAll(true);
+
+				$("#"+id+"_span").html(html);
+
+				$("#"+id+"_span").css('color','#FF6666');
+				
+			});	
+		}
+
+		function addHoverDom(treeId, treeNode)
+		{
+
+			var sObj = $("#" + treeNode.tId + "_span");
+			if (treeNode.editNameFlag || $("#addBtn_"+treeNode.tId).length>0) return;
+
+			var addStr = "<span class='button add' id='addBtn_" + treeNode.tId
+				+ "' title='添加新分类' onfocus='this.blur();'></span>";
+			
+			sObj.after(addStr);
+
+			var btn = $("#addBtn_"+treeNode.tId);
+			if (btn) btn.bind("click", function(){
+					//点击添加分类
+					var level = treeNode.level;
+					if(level>='1')
+					{
+						var html = "<div>已经是最后一级分类，不能再添加下级分类</div>";
+
+						$("#scategory_error").html(html);
+
+						$("#scategory_error").dialog();
+
+						return false;
+					}
+
+				 //添加分类模板
+				 var html = '<form><fieldset class="ui-helper-reset">';
+				 html+= '<input type="hidden" name="parent_id" value="'+treeNode.cate_id+'">';
+				 html+= '父分类名:';
+				 html+= '<input type="text" disabled name="parent_cate_name" value="'+treeNode.cate_name+'" /><br/>';
+				 html+='<br/>';
+				 html+= '<label for="cate">&nbsp;分类名:</label>';
+				 html+= '<input type="text" name="cate" value="" class="ui-widget-content ui-corner-all">';
+				 html+="<div style='width:100%;height:10px;clear:both'>&nbsp;&nbsp;</div>";
+				 html+="<div id=\"weixin\">&nbsp;&nbsp;&nbsp;";
+
+				 html+= '<label for="weixin">&nbsp;&nbsp;状态:</label>';
+			 	 html+="<input type=\"radio\" id=\"radio1\" name=\"weixin\"  value='1' checked=\"checked\"><label for=\"radio1\">显示</label>";
+			 	 html+="<input type=\"radio\" id=\"radio2\" name=\"weixin\" value='0'><label for=\"radio2\">隐藏</label>";
+			 
+				
+				 html+="</div>";
+
+				 html+='</fieldset></form>';
+
+				 
+				 html+='<div class="error_show" style="color:red"></div>';
+				 
+				$("#scategory_edit").html(html);
+
+				$("#scategory_edit").dialog({
+						//添加分类的弹框操作
+						modal: true,
+						buttons: {
+						 "添加": function(){
+
+						 	var parent_id = $("input[name='parent_id']").val();
+							var cate_name = $("input[name='cate']").val();
+							var weixin = $("input[name='weixin']:checked").val();
+
+							if(cate_name=='')
+							{
+								$(".error_show").html("请填写分类名字");
+								return false;
+							}
+
+							$.post('/store/scategory/add',{'parent_id':parent_id,'cate_name':cate_name,'weixin':weixin},function(result){
+
+									if(result.state!='1')
+									{
+										$(".error_show").html(result.message);
+										return false;
+									}else{
+										alert("添加二级分类成功！");
+									}
+
+									//处理添加后的结果(上架或下架)
+
+									var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+									if(weixin=='1')
+									{
+										//显示父级和当前
+
+										zTree.addNodes(treeNode, {id:(100 + newCount), pId:treeNode.id,cate_name:cate_name,name:cate_name,cate_id:result.data,weixin:weixin,parent_id:parent_id});
+
+										if(treeNode.weixin=='0')
+										{
+											var parent_id = treeNode.tId;
+
+											var html = $("#"+parent_id+"_span").html();
+
+											html = html.split("(");
+
+											html = html[0];
+
+											$("#"+treeNode.tId+"_span").html(html);
+										}
+
+										$("#scategory_edit").dialog("close");
+
+									}
+
+									if(weixin=='0')
+									{
+										//只隐藏当前
+		
+										zTree.addNodes(treeNode, {id:(100 + newCount), pId:treeNode.id,cate_name:cate_name,name:cate_name,cate_id:result.data,weixin:weixin,parent_id:parent_id});
+
+										//新增加的分类
+										var node = zTree.getNodeByParam("cate_id",result.data,null);
+
+										var id = node.tId;
+
+										var html = cate_name+"<span>(隐藏)</span>";
+
+										$("#"+id+"_span").html(html);
+										$("#"+id+"_span").css('color','rgb(255, 102, 102)');
+										$("#scategory_edit").dialog("close");
+
+										return false;
+									}
+
+							},'json');
+
+						}
+					}
+
+				});
+				$("#scategory_edit").buttonset();
+
+			});
+			
+		};
+
+
+
+		function removeHoverDom(treeId, treeNode)
+		{
+			$("#addBtn_"+treeNode.tId).unbind().remove();
+		};
+
+
+		//分类的编辑
+
+		function beforeEditName(treeId, treeNode) 
+		{
+			
+			var  cate_name = treeNode.cate_name;
+			var  cate_id = treeNode.cate_id;
+	
+			if(cate_name.length<1 || cate_id.length<1)
+			{
+				alert("修改区域的参数缺失");
+				return false;
+			}
+
+			 var html = '<form><fieldset class="ui-helper-reset">';
+			 html+= '<input type="hidden" name="cate_edit" value="'+cate_id+'">';
+			 html+= '<label for="cate">分类名:</label>';
+			 html+= '<input type="text" name="cate" value="'+cate_name+'" class="ui-widget-content ui-corner-all">';
+			 html+="<div style='width:100%;height:10px;clear:both'>&nbsp;&nbsp;</div>";
+
+
+			 html+="</div>";
+
+			 html+='</fieldset></form>';
+		 
+			 html+='<div class="error_show" style="color:red"></div>';
+			 
+			$("#scategory_edit").html(html);
+			
+			$("#scategory_edit").dialog({
+				modal: true,
+				buttons: {
+					"修改": function(){
+						//编辑区域
+						var cate_id = $("input[name='cate_edit']").val();
+						var cate_name = $("input[name='cate']").val();
+						
+	
+						if(cate_name=='')
+						{
+							$(".error_show").html("请填写分类名字");
+							return false;
+						}
+						
+						
+						$.post('/store/scategory/edit',{'cate_id':cate_id,'cate_name':cate_name},function(result){
+							
+							if(result.state!='1')
+							{
+								$(".error_show").html(result.message);
+								return false;
+							}
+
+							//修改名字
+
+							treeNode.cate_name = cate_name;
+
+							$("#"+treeNode.tId+"_span").html(cate_name);
+
+							alert("编辑分类成功");
+							
+							$("#scategory_edit").dialog("close");
+							
+						},'json');
+						
+					},
+					"取消": function(){
+						$(this).dialog("close");
+					}
+				},
+			});
+			
+			
+			$("#scategory_edit").dialog("open");
+			$("#scategory_edit").buttonset();
+
+			return false;
+		}
+		
+		
+
+		var zNodes = '';
+
+		$(document).ready(function(){
+			$.ajax({
+	            type: "POST",
+	            url: "/store/scategory/show",
+	            dataType: "json",
+	            async:false,
+	            success: function(result)
+	            {
+	            	if(result.state!='1')
+	            	{
+	            		var html = '<div>提取分类失败</div>';
+
+						$("#scategory_edit").html(html);
+				
+						$("#scategory_edit").dialog();
+
+	            	}else
+	            	{
+	            		zNodes = result.data;
+	            		$.fn.zTree.init($("#treeDemo"),setting,zNodes);
+	            	}
+	                      
+	            }
+            });
+
+		});
+
+</SCRIPT>
+
+<script type='text/javascript'>
+	$(function(){
+		//显示全部分类
+		$(document).on("click",".scategory_edit_all",function(){
+			$.ajax({
+	            type: "POST",
+	            url: "/store/scategory/show",
+	            dataType: "json",
+	            data:{'weixin':'false'},
+	            async:false,
+	            success: function(result)
+	            {
+	            	if(result.state!='1')
+	            	{
+	            		var html = '<div>提取分类失败</div>';
+
+						$("#scategory_edit").html(html);
+				
+						$("#scategory_edit").dialog();
+
+	            	}else
+	            	{
+	            		zNodes = result.data;
+	            		$.fn.zTree.init($("#treeDemo"),setting,zNodes);
+	            		status_identification();
+	            	}
+	                      
+	            }
+            });
+		});
+		//只显示在线分类
+
+		$(document).on("click",".scategory_edit",function(){
+			$.ajax({
+	            type: "POST",
+	            url: "/store/scategory/show",
+	            dataType: "json",
+	            async:false,
+	            success: function(result)
+	            {
+	            	if(result.state!='1')
+	            	{
+	            		var html = '<div>提取分类失败</div>';
+
+						$("#scategory_edit").html(html);
+				
+						$("#scategory_edit").dialog();
+
+	            	}else
+	            	{
+	            		zNodes = result.data;
+	            		$.fn.zTree.init($("#treeDemo"),setting,zNodes);
+	            	}
+	                      
+	            }
+            });
+		});
+
+		//添加根分类
+		$(document).on("click",'.parent_add',function(){
+				 var html = '<form><fieldset class="ui-helper-reset">';
+
+				 html+= '<label for="cate">&nbsp;一级分类名:</label>';
+				 html+= '<input type="text" name="cate" value="" class="ui-widget-content ui-corner-all">';
+				 html+="<div style='width:100%;height:10px;clear:both'>&nbsp;&nbsp;</div>";
+				 html+="<div id=\"weixin\">&nbsp;&nbsp;&nbsp;";
+
+				 html+= '<label for="weixin">&nbsp;&nbsp;状态:</label><br/>';
+			 	 html+="<input type=\"radio\" id=\"radio1\" name=\"weixin\"  value='1' checked=\"checked\"><label for=\"radio1\">显示</label>";
+			 	 html+="<input type=\"radio\" id=\"radio2\" name=\"weixin\" value='0'><label for=\"radio2\">隐藏</label>";
+			 
+				
+				 html+="</div>";
+
+				 html+='</fieldset></form>';
+
+				 
+				 html+='<div class="error_show" style="color:red"></div>';
+				 
+				$("#scategory_edit").html(html);
+
+				$("#scategory_edit").dialog({
+						//添加分类的弹框操作
+						modal: true,
+						buttons: {
+						 "添加": function(){
+
+							var cate_name = $("input[name='cate']").val();
+							var weixin = $("input[name='weixin']:checked").val();
+
+							if(cate_name=='')
+							{
+								$(".error_show").html("请填写分类名字");
+								return false;
+							}
+
+
+							$.post('/store/scategory/parent_add',{'cate_name':cate_name,'weixin':weixin},function(result){
+
+
+									if(result.state!='1')
+									{
+										$(".error_show").html(result.message);
+										return false;
+									}
+
+									//增加节点
+
+									var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+		
+									zTree.addNodes(null,{id:(100 + newCount),cate_name:cate_name,name:cate_name,cate_id:result.data,weixin:weixin});
+
+									//处理添加后的结果(上架或下架)
+									
+									if(weixin=='0')
+									{
+
+										//新增加的分类
+										var node = zTree.getNodeByParam("cate_id",result.data,null);
+
+										var id = node.tId;
+
+										var html = cate_name+"<span>(隐藏)</span>";
+
+										$("#"+id+"_span").html(html);
+
+										$("#"+id+"_span").css('color','#FF6666');
+
+									}
+
+									$("#scategory_edit").dialog("close");
+
+							},'json');
+
+						}
+					}
+
+				});
+				$("#scategory_edit").buttonset();
+
+		});
+
+	});
+</script>
+
+<script type='text/javascript'>
+	$(function(){
+		//上架
+		$(document).on("click",".cate_show",function(){
+			if(!confirm("确定要上架这些分类吗?"))
+			{
+				return false;
+			}
+
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+			var checked_nodes = zTree.getCheckedNodes(true);
+
+			if(checked_nodes.length<1)
+			{
+				alert("未选中分类");
+
+				return false;
+			}
+
+			var cate_ids = " ";
+
+			$.each(checked_nodes,function(k,node){
+				cate_ids+=node.cate_id+',';
+			});
+
+			//上架选中的分类
+
+			$.post('/store/scategory/up_and_down',{'cate_ids':cate_ids,'weixin':'1'},function(result){
+					if(result.state!='1')
+					{
+						var html = "分类上下架失败";
+						$("#scategory_error").html(html);
+						$("#scategory_error").dialog();
+						return false;
+					}
+
+
+						var msg = "分类上下架成功";
+
+						$("#scategory_error").html(msg);
+
+						$("#scategory_error").dialog();
+
+						$.each(checked_nodes,function(k,node){
+
+							var html = $("#"+node.tId+"_span").html();
+
+							html = html.split("(");
+
+							html = html[0];
+
+							$("#"+node.tId+"_span").html(html);
+							$("#"+node.tId+"_span").css('color','#333');
+						});
+
+
+			},'json');
+
+		});
+
+
+
+		//下架
+		$(document).on("click",".cate_hidden",function(){
+			if(!confirm("确定要下架这些分类吗?"))
+			{
+				return false;
+			}
+
+			var zTree = $.fn.zTree.getZTreeObj("treeDemo");
+
+			var checked_nodes = zTree.getCheckedNodes(true);
+
+			if(checked_nodes.length<1)
+			{
+				alert("未选中分类");
+
+				return false;
+			}
+
+			var cate_ids = " ";
+
+			$.each(checked_nodes,function(k,node){
+				cate_ids+=node.cate_id+',';
+			});
+
+			//上架选中的分类
+
+			$.post('/store/scategory/up_and_down',{'cate_ids':cate_ids,'weixin':'0'}, function (result){
+					if(result.state!='1')
+					{
+						var html = "分类上下架失败";
+						$("#scategory_error").html(html);
+						$("#scategory_error").dialog();
+						return false;
+					}
+
+
+						var html = "分类上下架成功";
+
+						$("#scategory_error").html(html);
+
+						$("#scategory_error").dialog();
+
+						$.each(checked_nodes,function(k,node){
+
+							var html = $("#"+node.tId+"_span").html();
+
+							html  = html+"(隐藏)";
+						
+
+							$("#"+node.tId+"_span").html(html);
+							$("#"+node.tId+"_span").css('color','rgb(255, 102, 102)');
+						});
+
+
+			},'json');
+
+		});
+
+	})
+</script>
+{/literal}

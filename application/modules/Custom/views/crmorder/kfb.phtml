@@ -1,0 +1,45 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="/application/modules/Custom/public/js/order.js"></script>
+<link type="text/css" rel="stylesheet" href="/public/css/ui.jqgrid.css">
+<link type="text/css" rel="stylesheet" href="/public/css/ui.order.css">
+<script type="text/javascript" src="/public/js/grid.locale-cn.js"></script>
+<script type="text/javascript" src="/public/js/jquery.jqGrid.min.js"></script>
+<script>
+
+socket = io.connect('id.meishisong.mobi:11114');
+socket.emit('unread order',{ uid : 12 });
+socket.on('unread total',function(data){
+	alert(data);
+})
+
+/**
+ * 模拟发送修改消息状态
+ * @to_user          int     用户Id
+ * @status           int     状态（‘已读 = 1’，‘删除 = 2’）
+ * @message_id       int     消息Id 
+ */
+
+function send_stat(){
+    var uid     = '1';
+    var status      = '1';
+    var message_id  = '2';
+    
+
+}
+// $(function(){
+// //接收时时消息
+// // socket.on('unread order',function(data){  
+    // // $("#message").append("<p>"+data.uid+"</p>");
+    // // console.log(data.uid);
+    
+// // })
+
+// })
+</script>
+<!--<a href="#" onclick="send_message()">发送消息</a>-->
+<p>接收消息</p>
+<center>
+    <div id="message"></div>
+    <a href="#" onclick="send_stat()">
+</center>    
+{include file="$app_path/application/views/footer.phtml"}

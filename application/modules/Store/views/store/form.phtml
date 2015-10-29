@@ -1,0 +1,553 @@
+<!DOCtype html>
+<html lang="en">
+    <head>
+    	<meta htttr-equiv="X-UA-Comtratible" content="IE=EmulateIE7 charset=utf-8" />
+		<meta htttr-equiv="Content-type" content="text/html; charset=utf-8" />
+		<meta name="viewtrort" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scatd=no"/>
+	</head>
+
+	<body>
+	 <div style='width:800px;height:500px;' class='dialog_style'>
+	 <div class='dialog_left left' style='width:500px;height:100%;float:left;'>
+		<form id="form">
+			<table>
+			<tr>
+				<td class='td_left'>店铺名称：</td>
+				<td><input type="text" name="store_name_add"  id='store_name_add' /><span id='store_name_error' style='color:red'></span></span></td>
+			</tr>
+			<tr>
+				<td class='td_left'></td>
+				<td><span class='store_name_error'></span></td>
+			</tr>
+			<tr>
+				 <td class='td_left'>所在区域：</td>
+				 <td class="region_name_add">
+					 <select name='city_add' class="city_add"></select> 
+					 <select name='county_add' class="county_add"></select> 
+					 <select name='street_add' class="street_add"></select> 
+					 <select name='building_add' class="building_add"></select> 
+					 <span  name='bd_id_add' class='bd_id_add'></span>
+				 </td>
+			</tr>
+			<tr>
+				<td class='td_left'>地址：</td>
+				<td>
+					<input type='hidden' name='region_name_add' value=''>
+					<input type="text" name="address_add"/>
+				</td>
+			</tr>
+
+			<tr>
+				<td class='td_left'>经纬度：</td>
+				<td class='jingwei'>
+					<input type="text" name="longitude_add" value='' />
+					<input type="text" name="latitude_add" value=''/>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class='td_left'></td>
+				<td><span class='address_error' style='color:red'></span></td>
+			</tr>
+			
+			<tr>
+				<td class='td_left'>订餐电话：</td>
+				<td><input type="text" name="tel_add"/></td>
+			</tr>
+			<tr>
+				<td class='td_left'></td>
+				<td>(电话格式:13634561986/010-64582561/400-211-6786)</td>
+			</tr>
+			<tr>
+				<td class='td_left'>所属分类：</td>
+				<td class='category_add'>
+
+				</td>
+			</tr>
+			<tr>
+				<td class='td_left'>起送价：</td>
+				<td>￥<input type="text" name="min_cost_add"/></td>
+			</tr>
+			<tr>
+				<td class='td_left'>配送费：</td>
+				<td>￥<input type="text" name="delivery_fee_add" /></td>
+			</tr>
+			<tr>
+				<td class='td_left'>餐厅是否能开发票：</td>
+				<td>
+					<select name="receipt_add">
+						<option value='1'>是</option>
+						<option value='2'>否</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td class='td_left'>上架：</td>
+				<td class='if_show'>
+					<input type="radio" name="state_add" value='1' required />是
+					<input type="radio" name="state_add" value='2'/>否
+				</td>
+			</tr>
+
+			<tr>
+				<td class='td_left'>商家通告：</td>
+				<td class='announce_add'>
+					<textarea name='announce_add' rows="3" cols="20">
+					</textarea>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class='td_left'>是否可见：</td>
+				<td class='visibility'>
+					<input type="radio"  name="visibility_add" value='Y' required />是
+					<input type="radio"  name="visibility_add" value='N'/>否
+				</td>
+			</tr>
+			
+			<tr>
+				<td class='td_left'>结账方式：</td>
+				<td>
+					<select name="checkout_type_add" required>
+						  <option value ="1">现结</option>
+						  <option value ="2">月结</option>
+						  <option value="3">预付</option>
+					</select>
+				</td>
+			</tr>
+			<tr class='business_time'>
+				<td class='td_left'>营业时间：</td>
+				<td>
+					早上:<input type='text' name='zao_start_add'><br/>
+					---- <input type='text' name='zao_close_add'>
+				</td>
+			</tr>
+			<tr class='business_time'>
+				<td class='td_left'></td>
+				<td>
+					<span>(格式:07:00-09:00)</span>
+				</td>
+			</tr>
+			<tr class='business_time'>
+				<td class='td_left'></td>
+				<td>				
+					中午:<input type='text' name='zhong_start_add'><br/>
+					---- <input type='text' name='zhong_close_add'>
+				</td>
+			</tr>
+			<tr class='business_time'>
+				<td class='td_left'></td>
+				<td>
+					<span>(格式:12:00-14:00)</span>
+				</td>
+			</tr>
+			<tr class='business_time'>
+				<td class='td_left'></td>
+				<td>
+					晚上:<input type='text' name='wan_start_add'><br/>
+					---- <input type='text' name='wan_close_add'>
+				</td>
+			</tr>
+			<tr class='business_time'>
+				<td class='td_left'></td>
+				<td>
+					<span>(格式:17:00-21:00)</span>
+				</td>
+			</tr>
+
+			<tr class='registration_mark'>
+				<td class='td_left'>营业执照注册号:</td>
+				<td>
+					<input type='text' name='registration_mark_add'>
+				</td>
+			</tr>
+
+			<tr>
+				<td class='td_left'>营业执照：</td>
+				<td><input type='file' name='license_add' class="required" accept="image/*"></td>
+			</tr>
+			
+			<tr>
+				<td class='td_left'>店铺logo：</td>
+				<td><input type='file' name='file_add' class="required" accept="image/*"></td>
+			</tr>
+			
+			<tr>
+				<td class='td_left'></td>
+				<td><span class='form_error_show' style='color:red'></span></td>
+			</tr>
+	
+			<tr class="submit">
+				<td></td>
+				<td><input type="submit" value="提交" /></td>
+			</tr>
+		 </table>
+		</form>
+	  </div>
+
+	  <!--<div class='right' style='width:240px;height:100%;float:right;'>
+	  </div>-->
+	  <div id='store_add_result' title='店铺管理'> <!--店铺添加结果-->
+	  </div>
+
+	  </div>
+	</body>
+</html>
+
+<script type='text/javascript'>
+	var region_list_add = '';
+	$(function(){	
+		//所属分类
+		$.post('/store/store/scategory',function(result){
+			if(result.state!='1')
+			{
+				$(".category_add").html('获取店铺分类失败');
+				return false;
+			}
+			var html = '';
+				html+= "<input type='hidden' name='category2_add' value=''/>";
+			$.each(result.data,function(k,v){
+				var cate_id = v['cate_id'];
+				var cate_name = v['cate_name'];
+				html+="<span><input type='checkbox' name='scategory_add' value='"+cate_id+"'>"+cate_name+"</span>";
+			});
+			$(".category_add").html(html);
+		},'json');
+
+
+		//所在区域
+		$.post('/store/store/region',function(result){
+			region_list_add = jQuery.parseJSON(result);
+			$(".region_name_add").cxSelect({
+					 selects:["city_add", "county_add", "street_add", "building_add"],
+					 url:region_list_add,
+			 });	
+		});
+
+		//查询经纬度
+		$("input[name='address_add']").on("blur",function(){
+			var address = $(this).val();
+			var city = $(".city_add").val();
+			if(address.length<1  || city.length<1)
+			{
+				return false;
+			}
+			$.post('position',{"address":address,"city":city},function(result){
+				if(result.state=='-1')
+				{
+					$(".address_error").html('接收参数失败');
+				}
+				else if(result.state=='-2')
+				{
+					$(".address_error").html('请输入正确的店铺地址');
+				}else
+				{
+					var location_data = result.data;
+					$("input[name='longitude_add']").attr("value",location_data['lng']);
+					$("input[name='latitude_add']").attr("value",location_data['lat']);
+					//反查查询输入的区域是否有问题
+					var lat = location_data['lat'];
+					var lnt = location_data['lng'];
+					var location = lat+","+lnt;
+					area_add(location);
+				}
+			},'json');
+		});
+		
+		//店铺名称唯一性
+		$(document).on("blur","#store_name_add",function(){
+				var store_name = $(this).val();
+
+				if(store_name.length<1)
+				{
+					return false;
+				}
+
+				$.ajax({
+					type:'post',
+					dataType:'Json',
+					data:{'store_name':store_name},
+					url:'/store/store/store_check',
+					success:function(result)
+					{
+						if(result.state!='1')
+						{
+							$("#store_name_error").html(result.message);
+							return false;
+						}else
+						{
+							$("#store_name_error").html("");
+						}
+					}
+				});
+
+		});
+
+		//查询crm_building 
+		$(document).on("change",".building_add",function(){
+			var parent_id = $(this).val();
+			if(parent_id=='0'  || parent_id==null)
+			{
+				return false;
+			}
+
+			$.ajax({
+				type:'post',
+				dataType:'json',
+				data:{"parent_id":parent_id},
+				url:'build',
+				async:"false",
+				success:function(result)
+				{
+					if(result.state=='-1')
+					{
+						var html = "获取建筑物信息失败";
+
+						$(".bd_id_add").html(html);
+						$(".bd_id_add").show();
+						return false;
+					}
+
+					if(result.state=='1')
+					{
+						var data = result.data;
+						var html="<select name='bd_id_add' class='bd_id_add'>";
+						$.each(data,function(k,v){
+							html+="<option value='"+v['bd_id']+"'>"+v['bd_name']+"</option>";
+						});
+
+						html+="</select>";
+
+						$(".bd_id_add").html(html);
+						$(".bd_id_add").show();
+					}
+				}
+			});
+
+		});
+
+		$("city_add").on("change",function(){
+				bd_hide();
+		});
+
+		$(".county_add").on("change",function(){
+			   bd_hide();
+		});
+
+		$(".building_add").on("change",function(){
+			   bd_hide();
+		});
+
+		$(".street_add").on("change",function(){
+			  bd_hide();
+		});
+
+		function bd_hide()
+		{
+			$(".bd_id_add").html("");
+			$(".bd_id_add").hide();
+		}
+
+		//根据经纬度范围地址所在的区域
+
+		 function area_add(location)
+		 {
+			$.ajax({
+				type:'post',
+				dataType:'json',
+				data:{"location":location},
+				url:'area',
+				async:"false",
+				success:function(result)
+				{
+					if(result.state!=1)
+					{
+						$(".address_error").html("经纬度与店铺所在区域不对应，请重新选择区域");
+					}else
+					{
+						var district = result.data;
+						var county = $(".county_add option:selected").text();
+						if(district != county)
+						{
+							$(".address_error").html("经纬度与店铺所在区域不对应，请重新选择区域("+district+")");
+						}else
+						{
+							$(".address_error").html();
+							return false;
+						}
+					}
+				}
+			});
+		 }
+		
+		//form表单的验证
+		$("#form").validate({
+				debug:true,
+				rules:{
+					store_name_add:{
+						required:true,
+					},
+					street_add: {
+						required: true,
+					},
+					address_add:{
+						required: true,
+					},
+
+					longitude_add:{
+						required: true,
+					},
+					latitude_add:{
+						required: true,
+					},
+					tel_add:{
+						required: true,
+					},
+					scategory_add:{
+						required: true,
+					},
+					min_cost_add: {
+						required: true,
+						number_check:true,
+					},
+					delivery_fee_add:{
+						required: true,
+						number_check:true,
+					},
+					state_add:{
+						required: true,
+					},
+					visibility_add:{
+						required: true,
+					},
+					file_add:{
+						required: true,
+					},
+					zao_start_add:{
+						date_check:true,
+					},
+					zao_close_add:{
+						date_check:true,
+					},
+					zhong_start_add:{
+						date_check:true,
+					},
+					zhong_close_add:{
+						date_check:true,
+					},
+					wan_start_add:{
+						date_check:true,
+					},
+					wan_close_add:{
+						date_check:true,
+					},
+					registration_mark_add:{
+						registration_check:true,
+					},
+				},
+
+				messages:{
+					store_name_add:"请输入店铺名！",
+					street_add:'请输入区域',
+					address_add:'请输入地址',
+					longitude_add:'请输入经纬度',
+					latitude_add:'请输入经纬度',
+					tel_add:"请输入电话",
+					scategory_add:'请选择店铺分类',
+					state_add:'请选择上下架状态',
+					visibility_add:'请选择店铺是否为隐藏',
+					file_add:'请上传图片',
+					license_add:'请上传营业执照',
+				},
+				
+				errorPlacement: function(error,element)
+				{ //指定错误信息位置
+					if(element.is(':radio'))
+					{ 
+						error.appendTo(element.parent()); 
+					}else if(element.is(':checkbox'))
+					{
+						error.appendTo(element.parent().parent()); 
+					}else
+					{
+						error.insertAfter(element); 
+					}
+					
+				}, 
+				
+				submitHandler:function(){  
+						//分类获取
+						var chk_value = '';  
+						$('input[name="scategory_add"]:checked').each(function(){  
+							chk_value+=$(this).val()+',';
+						});
+						
+						$("input[name='category2_add']").val(chk_value);
+						
+						//先验证区域是否填写完整（剩下的已验证完毕）
+						var street = $("select[name='street_add']").val();
+						var building = $("select[name='building_add']").val();
+			
+						var street_length = $("select[name='street_add'] option").length;
+						var building_length = $("select[name='building_add'] option").length;
+						
+						if((street_length>1 && street=='0') || (building_length>1 && building=='0'))
+						{
+							$(".address_error").html("请将区域选择完整");
+							return false;
+						}
+		
+						var city_text = $("select[name='city_add']").find("option:selected").text();
+						var county_text = $("select[name='county_add']").find("option:selected").text();
+						var street_text = $("select[name='street_add']").find("option:selected").text();
+						var building_text = $("select[name='building_add']").find("option:selected").text();
+						
+						$("input[name='region_name_add']").val(city_text+county_text+street_text+building_text);
+						
+						var options = {
+							url:'/store/store/insert',
+							cache:false,
+							type:'post',
+							dataType:'json',
+							beforeSubmit:function(){
+								//取消提交按钮
+								var msg = "<td></td>";
+									msg +="<td>正在提交请稍后....</td>";	
+								$("#form .submit").html(msg);		
+							},
+							success:function(result)
+							{
+								var reset_msg = "<td></td>";
+									reset_msg +="<td><input type='submit' value='提交' /></td>";	
+								$("#form .submit").html(reset_msg);
+								if(result.state!='1')
+								{
+									$(".form_error_show").html(result.message);
+									return false;
+								}
+								//刷新当前页面
+								var html ="<div>新增店铺成功</div>";
+								$("#store_add_result").html(html);
+								$("#store_add_result").dialog();
+
+								$('#form')[0].reset(); 
+								$(".address_error").html(" ");
+								$(".bd_id_add").html(" ");
+								$("input[name='longitude_add']").val("");
+								$("input[name='latitude_add']").val("");
+								
+								$(".region_name_add").cxSelect({
+										 selects:["city_add", "county_add", "street_add", "building_add"],
+										 url:region_list_add,
+								 });
+	
+							},							
+						};
+						
+						$("#form").ajaxSubmit(options);
+						return false;
+				}, 
+		
+		});	
+	});
+</script>

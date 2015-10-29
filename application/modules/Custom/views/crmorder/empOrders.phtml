@@ -1,0 +1,32 @@
+<link rel="stylesheet" href="{$smarty.const.STATIC_URI}/crm/css/crmbase.css" />
+<div class="add_goods" id="tabs">
+<div id="list">
+	<table id="store-goods" style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<thead>
+		<tr id="order_tr">
+			<th>订单编号</th>
+			<th>餐厅名称</th>
+			<th>收货地址</th>
+			<th>状态</th>
+			<th>分配时间</th>
+			<th>取餐时间</th>
+			<th>下单时间</th>
+		</tr>
+		{foreach from=$result item=vo}
+		<tr>
+			<td>{$vo.order_sn}</td>
+			<td>{$vo.seller_name}</td>
+			<td>{$vo.address}</td>
+			<td>{$orderStatus[$vo.status]}</td>
+			<td>{$vo.assign_time|date_format:'%m-%d %H:%M'}</td>
+			<td>{$vo.getfood_time|date_format:'%m-%d %H:%M'}</td>
+			<td>{$vo.add_time|date_format:'%m-%d %H:%M'}</td>
+		</tr>
+		{/foreach}
+		<tr class="total">
+			<td colspan="7" align="right">{$store_summary}</td>
+		</tr>
+		</thead>
+	</table>
+</div>
+</div>

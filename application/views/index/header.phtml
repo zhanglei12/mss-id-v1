@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    	<title>美食送管理系统</title>
+    	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7 charset=utf-8" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+
+		<link rel="stylesheet" href="/public/css/jquery-ui-1.11.0.css" />
+		<script src="/public/js/jquery-1.11.1.min.js"></script>
+		<script src="/public/js/jquery-ui-1.11.0.min.js"></script>
+		<script src="/public/js/product.js"></script>
+		<link rel="stylesheet" type="text/css" href="/public/css/mss_change.css"/>
+		<link rel="stylesheet" type="text/css" href="/public/css/Pager.css"/>
+	</head>
+
+<body>
+    <!-- 头部开始 -->
+    <div class="header">
+    	<div class="header_width">
+	    	<div class="logo"><img src="/public/img/logo.png"/><a>美食送管理系统</a></div>
+	    	<div class="mss_nav">
+	    		<ul class="mss_nav_ul">
+	    			<li class="li_color dpgl"><span><img src="/public/img/noc_1.png" /></span><a href="/store/store/index">店铺管理</a></li>
+	    			<li class="cpgl"><span><img src="/public/img/noc_2.png"/></span><a href="/goods/goods/index">菜品管理</a></li>
+	    			<li class="flgl"><span><img src="/public/img/noc_3.png"/></span><a href="/store/scategory/index">分类管理</a></li>
+	    			<li class="hzhb"><span><img src="/public/img/noc_4.png"/></span><a href="/partner/partner/index_p">合作伙伴管理</a></li>
+	    			<li class="qygl"><span><img src="/public/img/noc_5.png"/></span><a href="/region/region/index">区域管理</a></li>
+	    		</ul>
+	    	</div>
+	    	<div class="user_down" style="">
+	    		<div class="login"><img src="/public/img/user_down.png"/><a>{$smarty.session.empname}</a></div>
+	    		<div class="logout">
+	    		<img src="/public/img/nav_down.png"/><a id='loginout' href="#" style="color:#bbbbbb">退出</a>
+	    		</div>
+	    	</div>
+    	</div>
+    </div>
+    <!-- 头部结束 -->
+
+    <div class='login_show' title='登录管理'>  <!--退出提示dialog-->
+
+    </div>
+
+    <!-- 内容开始 -->
+
+    <script type='text/javascript'>
+    	$(function(){
+    		$(document).on("click","#loginout",function(){
+    				var msg = '确实要退出登录吗?';
+    				$(".login_show").html(msg);
+
+    				$(".login_show").dialog({
+					  		resizable:true,
+							modal: true,
+							buttons: {
+								"退出": function(){
+									window.location.href='/Index/loginout';
+								},
+
+								"取消": function(){
+									$(".login_show").dialog("close");
+									return false;
+								},	
+							},
+			  		});		
+    		});
+
+    	});
+
+    </script>

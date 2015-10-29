@@ -1,0 +1,221 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script>
+$(function() {
+	$("#tabs").tabs();
+	var user_id = $("#user_id").val();
+	$(".ui-tabs-anchor").each(function(){
+		var title = $(this).attr('href');
+		if(title == "#tabs-2"){
+			$(this).click(function(){
+				$.ajax({
+					url: "/custom/crmorder/consigneeAddress",
+					type: "POST",
+					data: "user_id="+user_id,
+					datetype: "json",
+					success: function(response){
+						$(".address").remove();
+						if(response.length>2){
+							$("#address-load").show();
+							var obj = eval(response);
+							$(obj).each(function(index){
+								$(".address").remove();
+								var val = obj[index];
+								$("#table-address").append('<tr class="address" align="center"><td>'+val.consignee+'</td><td>'+val.region_name+'</td><td>'+val.phone_mob+'</td><td>'+val.address+'</td></tr>');
+							})
+							$("#address-load").hide();
+						}else{
+							$(".address-none").html("无查询结果！");
+						}
+					}
+				})
+			})
+		}
+		if(title == "#tabs-3"){
+			$(this).click(function(){
+				ajaxPageHis();
+			// 	$.ajax({
+			// 		url: "/custom/crmorder/consigneeHistory",
+			// 		type: "POST",
+			// 		data: "user_id="+user_id,
+			// 		datetime: "json",
+			// 		success: function(response){
+			// 			$(".history").remove();
+			// 			$("#history-load").show();
+			// 			if(response.length>2){
+			// 				var obj = eval(response);
+			// 				$(obj).each(function(index){
+			// 					var val = obj[index];
+			// 					$("#table-history").append('<tr class="history" align="center"><td>'+val.order_sn+'</td><td>'+val.add_time+'</td><td>'+val.Address+'</td><td>'+val.store_name+'</td><td>'+val.phone_mob+'</td><td>'+val.buyregion+'</td><td>'+val.spn+'</td></tr>');
+			// 				})
+			// 				$("#history-load").hide();
+			// 			}else{
+			// 				$(".history-none").html("无查询结果！");
+			// 			}
+			// 		}
+			// 	})
+			})
+		}
+	})
+});
+function ajaxPageHis(num) {
+	$(".searchgoods").remove();
+	var pi = $("#history-current-page").val() - 1;
+	var pt = $("#history-total-page").html();
+	var user_id = $("#user_id").val();
+	var pc = 10;
+	// alert("pi="+pi);
+	// alert("pt="+pt);
+	// alert("num="+num); 
+	if(num == 1){
+		pi = parseFloat(pi) + 1;
+	}else{
+		pi = parseFloat(pi) - 1;
+	}
+	if(pi >= pt){
+		return false;
+	}else if(pi < 1){
+		pi = 0;
+	}
+	$("#history-current-page").val(pi+1);
+	$.ajax({
+			url: "/custom/crmorder/consigneeHistory",
+			type: "POST",
+			data: "user_id="+user_id+"&pi="+pi+"&pc="+pc,
+			datetime: "json",
+			success: function(response){
+				$(".history").remove();
+				$("#history-load").show();
+					var orderstatus = {$json_orderStatus};
+					var obj = jQuery.parseJSON(response);
+					var page = Math.ceil(obj.count/10);
+					$("#history-total-page").html(page);
+					if(obj.data.length){
+					$.each(obj.data,function(k,index){
+						var val = index;
+						emp_name=(val.emp_name==""||val.emp_name==null)?'':val.emp_name;
+						$("#table-history").append('<tr class="discolor history" align="center"><td>'+val.order_sn+'</td><td>'+val.add_time+'</td><td>'+val.Address+'</td><td>'+val.store_name+'</td><td>'+val.phone_mob+'</td><td>'+val.buyregion+'</td><td>'+emp_name+'</td></tr>');
+					})
+					$("#history-load").hide();
+				}else{
+					$(".history-none").html("无查询结果！");
+				}
+			}
+		})
+}
+</script>
+
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-1">基本信息</a></li>
+		<li><a href="#tabs-2">收货地址</a></li>
+		<li><a href="#tabs-3">订单历史记录</a></li>
+	</ul>
+	<div id="tabs-1">
+		<div id="list">
+			<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+			<input type="hidden" value="{$user_id}" id="user_id">
+				<tr>
+					<th width=100px>姓名</th>
+					<td align="left">{$userInfoArr.real_name}</td>
+					<th width=100px>手机号</th>
+					<td align="left">{$userInfoArr.phone_mob}</td>
+				</tr>
+				<tr>
+					<th>邮箱</th>
+					<td align="left">{$userInfoArr.email}</td>
+					<th>VIP</th>
+					<td align="left">
+					{if $userInfoArr.is_vip == 0}
+						否
+					{else}
+						是
+					{/if}
+					</td>
+				</tr>
+				<tr>
+					<th>积分</th>
+					<td align="left">{$userInfoArr.points}</td>
+					<th>最后登录时间</th>
+					<td align="left">
+						{if $userInfoArr.last_order_time != 0}
+							{$userInfoArr.last_order_time|date_format:'%Y-%m-%d %H:%M:%S'}
+						{/if}
+					</td>
+				</tr>
+				<tr>
+					<th>有效期至</th>
+					<td align="left">
+						{if $userInfoArr.reg_timetext != 0}
+							{$userInfoArr.reg_timetext|date_format:'%Y-%m-%d %H:%M:%S'}
+						{/if}
+					</td>
+					<th>注册时间</th>
+					<td align="left">
+						{if $userInfoArr.reg_time != 0}
+							{$userInfoArr.reg_time|date_format:'%Y-%m-%d %H:%M:%S'}
+						{/if}
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div id="tabs-2">
+		<div id="list">
+			<table style="width:100%" id="table-address" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+				<tr>
+					<th>联系人</th>
+					<th>区域</th>
+					<th>联系电话</th>
+					<th>地址</th>
+				</tr>
+				{if $userInfoArr.address|count > 0}
+				{foreach from=$userInfoArr.address item=info}
+				<tr>
+					<td align="left">{$info.consignee}</td>
+					<td align="left">{$info.region_name}</td>
+					<td align="left">{$info.phone_mob}</td>
+					<td align="left">{$info.address}</td>
+				</tr>
+				{/foreach}
+				{else}
+				<tr id="address-load"><td colspan="4" align="center" class="address-none">加载中...</td></tr>
+				{/if}
+			</table>
+		</div>
+	</div>
+	<div id="tabs-3">
+		<div id="list">
+			<table style="width:100%" id="table-history" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+				<tr>
+					<th>订单编号</th>
+					<th>下单时间</th>
+					<th>地址</th>
+					<th>餐厅</th>
+					<th>联系电话</th>
+					<th>收货人所在区域</th>
+					<th>配送方式</th>
+				</tr>
+				{if $userInfoArr.os|count > 0}
+				{foreach from=$userInfoArr.os item=info}
+				<tr>
+					<td align="left">{$info.order_sn}</td>
+					<td align="left">{$info.add_time}</td>
+					<td align="left">{$info.Address}</td>
+					<td align="left">{$info.seller_name}</td>
+					<td align="left">{$info.phone_mob}</td>
+					<td align="left">{$info.buyregion}</td>
+					<td align="left">{$info.spn}</td>
+				</tr>
+				{/foreach}
+				{else}
+				<tr id="history-load"><td colspan="7" align="center" class="history-none">加载中...</td></tr>
+				{/if}
+			</table>
+			<div id="show-page">
+				<a href="javascript:void(0)" onclick="ajaxPageHis('0')">上一页</a>
+				<a href="javascript:void(0)" onclick="ajaxPageHis('1')">下一页</a>当前第<input type="text" id="history-current-page" value="1" style="width:30px;">页共<span id="history-total-page"></span>页
+			</div>
+		</div>
+	</div>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}

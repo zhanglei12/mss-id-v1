@@ -1,0 +1,63 @@
+    <!-- 筛选部分开始 -->
+    <div class="screen">
+    	<div class="screening">
+		    <div class="sx_city">
+		    	<span>城市:</span>
+		    	<div class="city_left">
+		    		<ul>
+			    		<form>
+			    			{foreach from=$region_array item=region}
+			    			<li><input value="{$region.region_id}"  id="{$region.region_id}"  type="checkbox" name="region"/><a href="javascript:void(0);" style="color:#606060" >{$region.region_name}</a></li>
+			    			{/foreach}
+			    		</form>
+		    		</ul>
+		    	</div>
+
+		    	<div class="city_right" style="display:block">
+		    		<ul>
+		    		<form>
+		    		
+		    			<!-- <li><input type="checkbox" /><a href="javascript:void(0);" id="" class="num_city"></a></li> -->
+		    			
+		    		</form>
+		    		</ul>
+		    	</div>
+
+
+		    </div>
+		    <!-- 分割间隙 -->
+		  
+		  
+		    <div class="sx_type">
+		    	<span>分类:</span>
+		    	<div class="type_sj">
+		    		<ul>
+		    		<form style="display:block">
+		    			{foreach from=$foods_type item=foods}
+		    			
+		    			<li><input type="checkbox" value="{$foods.cate_id}"  name='cate'/><a href="#" id="{$foods.cate_id}">{$foods.cate_name}</a></li>
+		    			
+		    			{/foreach}
+		    		</form>
+		    		</ul>
+		    	</div>
+		    </div>
+		    <!-- 分割间隙 -->
+		 
+		     <div class="sx_hzhb">
+		    	<span>合作伙伴:</span>
+		    	<div class="hzhb_sj">
+		    		<ul>
+		    		<form>
+		    			{foreach from=$friend_list item=friend}
+		    			
+		    			<li><input type="checkbox" name='partner' value="{$friend.appkey}" /><a href="#"  id="{$friend.appkey}">{$friend.partner_name}</a></li>
+		    			   			
+		    			{/foreach}
+		    		</form>
+		    		</ul>
+		    	</div>
+		    </div>
+		</div>
+	</div>
+    <!-- 筛选部分结束 -->

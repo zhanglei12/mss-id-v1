@@ -1,0 +1,185 @@
+		{include file="../header.phtml"}
+		<!--用户的注册页面-->
+		<style type='text/css'>
+			.show_error
+			{
+				width:100%;
+				height:2.5em;
+				color:red;
+			}
+			.form
+			{
+					width:100%;
+					height:1.7em;
+				  
+
+			}
+		   
+			.form span
+			{
+					display:inline-block;
+					line-height:1.7em;
+					color:#000000;
+			}
+			.form .left
+			{
+					width:30%;
+					height:100%;
+				   
+			}
+			.form .right
+			{
+					width:65%;
+					height:100%;
+					
+
+			}
+			 .form .right input
+			 {
+					width:90%;
+			 }
+			 .before_send
+			 {
+					position:fixed;
+					top:0;
+					left:0;
+					z-index:99;
+					width:100%;
+					height:100%;
+					background-color:#EAEAEA;
+					opacity:0.8;
+					display: none;
+			 }
+			 .before_send_text
+			 {
+				position:fixed;
+				z-index:199;    
+				top:50%;
+				display: none;
+			 }
+			 .success_check
+			 {
+				position:fixed;
+				top:0;
+				left:0;
+				z-index:299;
+				width:100%;
+				height:100%;
+				background-color:#EAEAEA;
+				opacity:0.8;
+				display: none;
+			 }
+			</style>			
+                <div class='go_back' style='width:100%;line-height:2em;background-color:#D7D7D7'><span><<注册信息</span></div>
+                <div class='nau'></div>
+				 {if $result}
+					<div class="show_error">获取注册需要的信息失败，无法完成注册!</div>
+				 {else}
+                <form name='member_add'>
+						  <input type='hidden' name='openid' value="{$openid}"><!--隐藏用户openid-->
+                        <div class='form'>
+                          <span class='left'>姓名:</span>
+                          <span class='right'><input type='text' name='user_name'></span>
+                        </div>
+                        <div class='nav'></div>
+                        <div class='form'>
+                          <span class='left'>手机:</span>
+                          <span class='right'><input type='text' name='user_mobile'></span>
+                        </div>
+                        <div class='nav'></div>
+                        <div class='form'>
+                          <span class='left'>密码:</span>
+                          <span class='right'><input type='password' name='user_passwd'></span>
+                        </div>
+                        <div class='nav'></div>
+                        <div class='form'>
+                          <span class='left'>确认密码:</span>
+                          <span class='right'><input type='password' name='user_passwd_check'></span>
+                        </div>
+                        <div class='nav'></div>
+                        <div class='form'>
+                          <span class='left'>店铺:</span>
+                          <span class='right'>
+								<select name="store_id" style='width:90%'>
+									{foreach from=$store item=i}
+										<option value="{$i.store_id}">{$i.store_name}</option>
+									{/foreach}
+								</select>
+							</span>
+                        </div>
+                        <div class='nav'></div>
+                         <div class='form error_show' style='text-align:center;color:red'>
+                           
+                        </div>
+                        <div class='form' style='text-align:center'>
+                           <input type='button' value='提交信息' name='submit'>
+                        </div>
+                        <div class="before_send show_hide"></div>
+                        <div class="before_send_text show_hide" style='text-align:center;width:100%'>数据加载中，请稍后...</div>
+						  <div class="success_check"></div>
+						  <div class="before_send_text success_check" style='text-align:center;width:100%;position:fixed;top:50%'>提交成功,请等待审核。</div>
+                </form>
+				 {/if}
+         </body>
+</html>
+<script type='text/javascript'>
+  $(function(){
+	
+     //所有信息都不能为空
+     $("input[name='submit']").click(function(){
+        var check_full="true";
+        $("input").each(function(){
+                if($(this).attr("value")==""){
+                 $(this).focus();
+                 $(".error_show").html("信息输入有误或者未填写完整!");
+                  check_full="false";
+                 return;
+                }
+        });
+        if(check_full=="false"){
+                return;
+        }else{
+			//判断两次输入的密码是否一致
+			var passwd_check=$("input[name='user_passwd_check']").val();
+			var passwd=$("input[name='user_passwd']").val();
+			if(passwd==passwd_check){
+				$(".error_show").html("");
+			}else{
+				$(".error_show").html("信息输入有误或者未填写完整!");
+				return false;
+			}
+			submit();
+        }
+
+     })
+  })
+  
+  function submit(){
+	 $.ajax({
+			type:"post",
+			dataType:"json",
+			data:$("form").serialize(),
+			url:"Add",
+			beforeSend:function(){
+				$(".show_hide").show();
+			},
+			success:function(result){
+				if(result.state=="1"){
+					//显示提交成功信息
+					//$(".success_check").show().delay("2000").hide("slow");
+					$(".success_check").show();
+				}else{
+					if(result.state=="-6"){
+						alert("用户已经注册!");
+					}else{
+						alert("注册失败!");
+						//alert(result.state);
+					}
+				}
+			},
+			complete:function(){
+				$(".show_hide").hide();	
+			}
+	})	
+}
+</script>

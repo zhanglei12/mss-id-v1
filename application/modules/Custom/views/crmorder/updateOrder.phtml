@@ -1,0 +1,89 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/custom/order.js"></script>
+<script>
+$(function() {
+	socket.emit('send order',{ uid: '{$username}', empname: '{$empname}', order_id: '{$order_id}' });
+	$(".listDialog input, .listDialog button").button();
+	
+	getBigSelect();
+	$('#bigSelect').change(function() {
+		getSmallSelect();
+	})
+			
+	$("#closeDialog").click(function(){
+		socket.emit('unlock edit order', { uid: '{$username}', username: '{$empname}', order_id: '{$order_id}' });
+		closeDialog();
+	})
+	
+	$(".ui-dialog-titlebar-close").click(function(){	
+		socket.emit('unlock edit order', { uid: '{$username}', username: '{$empname}', order_id: '{$order_id}' });
+		closeDialog();		
+	})
+});
+
+function updateOrderDB(order_id, status) {
+	bigVal = $("#bigSelect option:selected").val() == 0 ? '' : $("#bigSelect option:selected").val();
+	smallVal = $("#smallSelect option:selected").val() == 0 ? '' : $("#smallSelect option:selected").val();
+	remarkVal = $(".remark").val();
+	if(bigVal == 0) {
+		alert("请选择原因");
+		return false;
+	}
+	if(smallVal == 0 && $("#smallSelect option").length > 1) {
+		alert("请选择原因");
+		return false;
+	}
+	if(remarkVal.length < 6) {
+		alert("备注不能小于6个字");
+		return false;
+	}
+	remark = bigVal+smallVal+remarkVal;
+	$.ajax({
+		url: "/custom/crmorder/updateOrderDB",
+		type: "POST",
+		dataType: "text",
+		data: "order_id="+order_id+"&status="+status+"&remark="+remark,
+		error: function(XMLHttpRequest){
+			alert("Error");
+		},
+		success: function(result){
+			// $("body").append("<div id='addBox'></div>");
+			if(result == 1) {
+				closeDialog();
+				socketUpdateOrder('{$username}', '{$empname}', order_id);
+				// socketUpdateOrder('{$empname}', order_id);
+				alert("更新成功");
+			}else if(result == -10){
+				alert("请重新登录");
+			}else{
+				alert("更新失败");
+			}
+		}
+	});
+}
+
+</script>
+<div id="list" class="listDialog">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<tr>
+			<th width="80px">选择原因</th>
+			<td>
+				<select id="bigSelect" name="bigSelect"></select>
+				<select id="smallSelect" name="smallSelect"><option value="0">请选择原因</option></select>
+			</td>
+		</tr>
+		<tr>
+			<th>备注</th>
+			<td>
+				<textarea name="remark" class="remark" style="width:98%;height:120px;"></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" align="center">
+				<input name="confirm" type="button" id="esc_order_id" value="确定" onclick="updateOrderDB({$order_id}, {$status});" />
+				<input id="closeDialog" name="cancel" type="button" value="取消" />
+			</td>
+		</tr>
+	</table>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}
