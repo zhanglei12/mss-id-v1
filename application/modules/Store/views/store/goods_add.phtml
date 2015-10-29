@@ -1,0 +1,325 @@
+<link rel="stylesheet" type="text/css" href="/public/css/Pager.css"/>
+<div class='dialog_style'>
+	 <div class='dialog_left'>
+		<form class="form" id='goods_add'>
+			<table width='90%;height:auto;'>
+				<input type='hidden' name='store_goods_id'  value="">
+				<tr>
+					<th class='td_left'>商品名称：</th>
+					<td>
+						<input type="text" name="goods_name"/>
+						<span class='goods_name_add_error' style='color:red'></span>
+					</td>
+				</tr>
+				
+				<tr>
+					<th class='td_left'>菜品分类：</th>
+					<td class='gcategory'></td>
+				</tr>
+
+				<tr>
+					 <th class='td_left'>网站分类：</th>
+					 <td class='category'>
+						
+					 </td> 
+				</tr>
+				 
+				<tr>
+					<th class='td_left'>价格：</th>
+					<td><input type="text" name="price"/></td>
+				</tr>
+
+				<tr>
+					<th class='td_left'>包装费：</th>
+					<td><input type="text" name="packing_fee"/></td>
+				</tr>
+
+				<tr>
+					<th class='td_left'>有票折扣：</th>
+					<td><input type="text" name="receipt_discount"/></td>
+				</tr>
+
+				<tr>
+					<th class='td_left'>无票折扣：</th>
+					<td><input type="text" name="nreceipt_discount"/></td>
+				</tr>
+
+				<tr>
+					<th class='td_left'>单位：</th>
+					<td><input type="text" name="spec_name"/></td>
+				</tr>
+
+
+				<tr>
+					<th class='td_left'>上架：</th>
+					<td class='if_show'>
+						<input type="radio" name="if_show" value='1'/ required>是
+						<input type="radio" name="if_show" value='0'/>否
+					</td>
+				</tr>
+				<tr>
+					<th class='td_left'>商品描述：</th>
+					<td><textarea cols='30' rows='5' name='summary'></textarea ></td>
+				</tr>
+				
+				<tr>
+					<th class='td_left'>搜索商品图片</th>
+					<td><input type='text' name='image_search'>
+						<input type='hidden' name='search_image' value=''>
+						<a href="javascript:void(0);" class="image_search_five" >搜索</a>
+					</td>
+				</tr>
+				
+				<tr>
+					<th class='td_left'>商品图片：</th>
+					<td><input type='file' name='file_goods_add'></td>
+				</tr>
+		  </table>
+		  
+		  <span class="error_show" style="width:200px;color:red;height:40px;line-height:41px;margin-left:180px"></span>
+			
+		  <div class="submit" style="width:200px;padding-left:85%;">
+					<input type="submit" value="提交" />
+		  </div>
+		
+		  <div class="image_xs" style="width:84%;margin:0 auto;margin-top:20px">
+				<div class='image_summary' ></div>
+				<div class='image_show' ></div>
+		  </div>
+		</form>
+	  </div>
+	  <div class='goods_add_error' style='color:red'></div>
+</div>
+
+<div id='goods_operate_result'  title='菜品处理结果'>  <!--菜品添加和菜品编辑的结果-->
+
+</div>
+
+<script type='text/javascript'>
+	$(function(){
+		//获取菜品的出餐时间
+		 $.post('/goods/goods/add',function(result){
+				if(result.state == '1')
+				{
+					var data = result.data;
+					var html=''
+					html+="<select class='cate_id' name=\"cate_id\" class=\"{required:true}\">";
+					$.each(data,function(key,value){
+						html+="<option value='"+value['cate_id']+"'>"+value['cate_name']+"</option>";
+					});
+					html+="</select>";
+					$(".category").html(html);
+				}else
+				{
+					$(".category").html("<span style='color:red'>获取菜品出餐时间失败!</span>");
+				}
+	
+			},'json');
+		//搜索图片url
+		$(".image_search_five").on("click",function(){
+	   		PageClick();
+	    });
+		
+		
+		//点击图片(搜索)
+	
+	    $(document).on("click",'.image_search_show',function(){
+	   		var img_value = $(this).attr("value");
+			
+			$("input[name='search_image']").val(img_value);
+			$(".image_summary").html("");
+			$(".image_show").html($(this).html());
+			
+	   	});
+		
+
+	});//声明结束位置
+
+
+
+		PageClick = function(pageclickednumber)
+	 	{
+		 	if(pageclickednumber=='')
+		 	{
+		 		pageclickednumber='1';
+		 	}
+	 		var keyword = $("input[name='image_search']").val();
+		   		if(keyword.length<1)
+		   		{
+		   			alert("请输入要查询图片的名字");
+		   			return false;
+		   		}
+	   			$(".image_summary").show();
+
+		   		//搜索图片
+		   		$.ajax({
+		   			type:'post',
+		   			dataType:'json',
+		   			data:{"keyword":keyword,"page":pageclickednumber},
+		   			url:"/goods/goods/search",
+		   			success:function(result)
+		   			{
+		   				if(result.state!=1)
+		   				{
+		   					alert(result.message);
+		   					return false;
+		   				}
+
+		   				var html="";
+		   				$.each(result.data,function(key,value){
+						
+		   					html+= "<div class='image_search_show'  value='"+value['image_url']+"/"+value['image_hash']+".jpg'><image value='"+value['image_id']+"' width='150px'  src='/public/img/store/public/"+value['image_url']+"/"+value['image_hash']+".jpg'></div>";
+		   				});
+		   		
+		   				$(".image_show").empty();
+		   				$(".image_show").html(html);
+		   				$(".image_summary").pager({pagenumber:pageclickednumber,pagecount:result.num,buttonClickCallback: PageClick });
+		   				
+		   			}
+		   		});
+   		}
+</script>
+
+<script type='text/javascript'>
+	$(function(){
+		$(document).on('blur','#goods_name',function(){
+			var goods_name = $(this).val();
+			var store_id = $("input[name='store_goods_id']").val();
+			if(goods_name.length<1)
+			{
+				return false;
+			}
+			if(store_id.length<1)
+			{
+				return false;
+			}
+			$.post('/store/store/goods_name_add',{'store_id':store_id,'goods_name':goods_name},function(result){
+				if(result.state!=1)
+				{
+					$(".goods_name_add_error").html(result.message);
+				}else
+				{
+					$(".goods_name_add_error").html("");
+				}
+			},'json');
+		});
+		
+		
+		//表单自定义验证有票折扣和无票折扣
+		$.validator.addMethod("zhekou_check",function(value,element){
+			var score = /0\.[0-9]*[0-9]$/;
+			var score_two  = /1.00$/;
+			return (score.test(value) || score_two.test(value));
+		},"<font color='#E47068'>请输入正确的折扣率(0.00-1.00)</font>");
+	
+	    //菜品添加
+		$("#goods_add").validate({
+				debug:true,
+				rules:{
+					goods_name:{required: true,},
+					cate_id:{required: true,},
+					gcategory_id:{required: true,},
+					price:{required: true,number_check:true,},
+					packing_fee:{required: true,number_check:true,},
+					receipt_discount:{zhekou_check:true,},
+					nreceipt_discount:{zhekou_check:true},
+					spec_name:{required:true,},
+					if_show:{required:true,},
+				},
+				messages:{
+					goods_name:'请填入菜品名字',
+					cate_id:'请选择出餐时间',
+					gcategory_id:'请选择菜品分类',
+					spec_name:'请写入单位',
+					if_show:'请选择菜品上下架',
+				},
+				
+				errorPlacement: function(error,element)
+				{ //指定错误信息位置
+					if(element.is(':radio'))
+					{ 
+						error.appendTo(element.parent()); 
+					}else
+					{
+						error.insertAfter(element); 
+					}
+				}, 
+				
+				submitHandler:function(){  
+				
+						var options = {
+							url:'/goods/goods/insert',
+							type:'post',
+							dataType:'json',
+							beforeSubmit:function(){
+								//取消提交按钮
+								var msg = "<td></td>";
+									msg +="<td>正在提交请稍后....</td>";	
+								$("#goods_add .submit").html(msg);		
+							},
+							success:function(result)
+							{
+								var reset_msg = "<td></td>";
+									reset_msg +="<td><input type='submit' value='提交' /></td>";	
+								$("#goods_add .submit").html(reset_msg);
+								
+								if(result.state!=1)
+								{
+									$(".goods_add_error").html(result.message);
+									return false;
+								}
+								
+								//底部写入数据
+
+								var goods = result.data;
+
+								//获取菜品分类
+
+								var gcategory_name = $('#gcategory_id_add option:selected').text();
+								var html = "<tr>";
+									html += "<td width='5%'>"+goods['goods_id']+"</td>";
+									html += "<td width='20%'>"+goods['goods_name']+"</td>";
+									html += "<td width='10%'>"+goods['price']+"</td>";
+									html += "<td width='10%'>"+gcategory_name+"</td>";
+									html += "<td width='10%'>"+goods['receipt_discount']+"</td>";
+									html += "<td width='10%'>"+goods['nreceipt_discount']+"</td>";
+									html += "<td width='10%'>"+goods['packing_fee']+"</td>";
+									
+									html += "<td width='5%'>"+goods['default_image']+"</td>";
+
+									
+									if(goods['if_show']=='上架')
+									{
+										html+="<td width='10%' class='orange'><a href='javascript:void(0);' gid='"+goods['goods_id']+"' class='goods_show' style='color:#ff923f'>上架</a></td>"
+									}else
+									{
+										html+="<td width='10%'><a href='javascript:void(0);' gid='"+goods['goods_id']+"' class='goods_show' style='color:#757575'>下架</a></td>";
+									}
+									
+									html += "<td width='10%'><a class='orange goods_edit' value='"+goods['goods_id']+"'>修改</a></td>";
+									html += "</tr>";
+
+								$("#goods_show_table").append(html);
+
+	
+								$("#goods_operate_result").html("菜品添加成功");
+
+								$("#goods_operate_result").dialog();
+
+								$('#goods_add')[0].reset();
+
+							}
+							
+						};
+						
+						$("#goods_add").ajaxSubmit(options);
+						return false;
+				},
+			
+		
+		});	
+	})
+</script>
+
+
+

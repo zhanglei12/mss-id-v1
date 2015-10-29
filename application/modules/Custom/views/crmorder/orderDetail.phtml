@@ -1,0 +1,1026 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/custom/order.js"></script>
+<script src="{$smarty.const.STATIC_URI}/id/js/jquery.json.min.js"></script>
+<style>
+.saveButton { 
+	width: 50px;
+	display: none;
+}
+textarea {
+	width: 361px; 
+	height: 26px; 
+	padding: 0; 
+	margin-top: 2px;
+	margin-bottom: -8px;
+}
+#saveOrderGoods {
+	color: #ff6600;
+}
+</style>
+<script>
+var socket = io.connect('{$WEB_SOCKET_IP}:{$WEB_SOCKET_PORT}');
+// var socket = io.connect('id.meishisong.mobi:11099');
+var order_id_num = {$detail[0].order_id};
+// socket 获取订单ID,并判断锁
+socket.on('lock order', function (data){
+	if(in_array(order_id_num, data.order_id)) {
+		$("body").remove();
+		socket.emit('edit order', { uid: '{$username}', username: '{$empname}', order_id: {$detail[0].order_id}, status: '{$orderType}', edit: 0 });
+		alert(data.username[order_id_num]+"正在对该订单做修改，订单已被锁定！");
+		windowClose();
+	} else {
+		socket.emit('edit order', { uid: '{$username}', username: '{$empname}', order_id: {$detail[0].order_id}, status: '{$orderType}', edit: 1 });
+	}
+	// console.log(data);
+});
+// socket 检查本页面是否在线
+// socket.on('check order', function (data){
+	// if(in_array(order_id_num, data.order_id)) {
+	
+	// }
+// });
+
+$(function() {
+	getParentArea();
+	$("#tabs").tabs();
+	// discolor();
+	if('{$orderType}' == 'allorder') {
+		$("input[type='text']").attr("disabled", "true");
+		
+		$(".goods_remark").removeAttr("disabled");
+	}
+	var order_id = $("#order_id").val();
+	//显示保存按钮
+	$(".saveText").bind("keydown change", function(){
+		$(this).next().css("display", "inline");
+	})
+	//修改区域
+	$("#area").change(function(){
+		if($(this).val() == 0){
+			return false;
+		}
+		if($(this).val() == 178){
+			alert("区域不可更改为空白！");
+			return false;
+		}
+		if(confirm("确认修改区域吗？")){
+			//本地存储自增id
+			var areaid = $("#area").val();
+			var areaname = $("#area  option:selected").text();
+			var value = [areaid,areaname];
+			var type = "area";
+			modifyReceipt(value,type, order_id);
+			//订单操作记录存入本地storage
+			saveLocalStorage(order_id, '{$username}');
+			return true;
+		}else{
+			return false;
+		}
+	})
+	$("#dispatch_type").change(function(){
+		if(confirm("确认修改调度方式吗？")){
+			var value = $("#dispatch_type").val();
+			var type = "dispatch_type";
+			modifyReceipt(value,type,order_id);
+			return true;
+		}else{
+			return false;
+		}
+	})
+	$("#parent_area").change(function(){
+		getParentArea();
+	})
+	//修改收货人电话
+	$("#pb").click(function(){
+		var value = $("#phone_mob").val();
+		var type = "phone_mob";
+		modifyReceipt(value,type,order_id);
+		$("#pb").css({ display: "none"});
+	})
+	//修改收货人
+	$("#co").click(function(){
+		var value = $("#consignee").val();
+		var type = "consignee";
+		modifyReceipt(value,type,order_id);
+		$("#co").css({ display: "none"});
+	})
+	//修改收货人地址
+	$("#ad").click(function(){
+		var value = $("#address").val();
+		var type = "address";
+		modifyReceipt(value,type,order_id);
+		$("#ad").css({ display: "none"});
+	})
+	//添加客服备注
+	$("#kfremark").click(function(){
+		var value = $("#kf").val();
+		var type = "kfremark";
+		modifyReceipt(value,type,order_id);
+		$("#kfremark").css({ display: "none"});
+		$("#kf").val("");
+	})
+	//添加调度备注
+	$("#ddremark").click(function(){
+		var value = $("#dd").val();
+		var type = "ddremark";
+		modifyReceipt(value,type,order_id);
+		$("#ddremark").css({ display: "none"});
+	})
+	//修改要求送达时间
+	$("#request").click(function(){
+		var value = $("#request_time").val();
+		var type = "request_time";
+    	if(!checkTimeFormat(value)){
+    		alert("时间格式错误！");
+    		return false;
+    	};
+		modifyReceipt(value,type,order_id);
+		$("#request").css({ display: "none"});
+	})
+	//获取订单操作历史
+	$("#ui-id-2").click(function(){
+		$.ajax({
+			url: "/custom/crmorder/getOperate",
+			type: "POST",
+			data: "order_id="+order_id,
+			datetime: "json",
+			success: function(response){
+				$(".operate").remove();
+				$("#operate-load").show();
+				if(response.length>2){
+					var orderstatus = {$json_orderStatus};
+					var obj = eval(response);
+					$(obj).each(function(index){
+						var val = obj[index];
+						var logtime = getLocalTime(val.log_time);
+						remark=(val.remark==""||val.remark==null)?'':val.remark;
+						$("#table-operate").append('<tr class="discolor operate" align="center"><td>'+logtime+'</td><td>'+val.emp_name+'</td><td>'+orderstatus[val.order_status]+'</td><td>'+orderstatus[val.changed_status]+'</td><td>'+remark+'</td></tr>');
+					})
+					$("#operate-load").hide();
+				}else{
+					$(".operate-none").html("无查询结果！");
+				}
+			}
+		})
+	})
+	//获取历史订单
+	$("#ui-id-3").click(function(){
+		ajaxPageHis();
+		// $.ajax({
+		// 	url: "/custom/crmorder/getHistory",
+		// 	type: "POST",
+		// 	data: "order_id="+order_id,
+		// 	datetime: "json",
+		// 	success: function(response){
+		// 		$(".history").remove();
+		// 		$("#history-load").show();
+		// 		if(response.length>2){
+		// 			var orderstatus = {$json_orderStatus};
+		// 			var obj = eval(response);
+		// 			$(obj).each(function(index){
+		// 				var val = obj[index];
+		// 				emp_name=(val.emp_name==""||val.emp_name==null)?'':val.emp_name;
+		// 				$("#table-history").append('<tr class="discolor history" align="center"><td>'+val.order_sn+'</td><td>'+val.add_time+'</td><td>'+val.Address+'</td><td>'+val.store_name+'</td><td>'+val.phone_mob+'</td><td>'+val.buyregion+'</td><td>'+emp_name+'</td></tr>');
+		// 			})
+		// 			$("#history-load").hide();
+		// 		}else{
+		// 			$(".history-none").html("无查询结果！");
+		// 		}
+		// 	}
+		// })
+	})
+	//修改区域
+	// $("#region").click(function(){
+	// 	var areaid = $("#area").val();
+	// 	var areaname = $("#area  option:selected").text();
+	// 	var value = [areaid,areaname];
+	// 	var type = "area";
+	// 	modifyReceipt(value,type,order_id);
+	// })
+	// var restaurant = '{$detail[0].res_confirm}';
+	// console.log("restaurant="+restaurant);
+	// if(restaurant == 0){
+	// 	$(".resconfirm").attr("disabled","true");
+	// }
+});
+function ajaxPageHis(num) {
+	$(".searchgoods").remove();
+	var pi = $("#history-current-page").val() - 1;
+	var pt = $("#history-total-page").html();
+	var order_id = $("#order_id").val();
+	var pc = 10;
+	// alert("pi="+pi);
+	// alert("pt="+pt);
+	// alert("num="+num);
+	if(num == 1){
+		pi = parseFloat(pi) + 1;
+	}else{
+		pi = parseFloat(pi) - 1;
+	}
+	if(pi >= pt){
+		return false;
+	}else if(pi < 1){
+		pi = 0;
+	}
+	$("#history-current-page").val(pi+1);
+	$.ajax({
+			url: "/custom/crmorder/getHistory",
+			type: "POST",
+			data: "order_id="+order_id+"&pi="+pi+"&pc="+pc,
+			datetime: "json",
+			success: function(response){
+				$(".history").remove();
+				$("#history-load").show();
+					var orderstatus = {$json_orderStatus};
+					var obj = jQuery.parseJSON(response);
+					var page = Math.ceil(obj.count/10);
+					$("#history-total-page").html(page);
+					if(obj.data.length){
+					$.each(obj.data,function(k,index){
+						var val = index;
+						emp_name=(val.emp_name==""||val.emp_name==null)?'':val.emp_name;
+						$("#table-history").append('<tr class="discolor history" align="center"><td>'+val.order_sn+'</td><td>'+val.add_time+'</td><td>'+val.Address+'</td><td>'+val.store_name+'</td><td>'+val.phone_mob+'</td><td>'+val.buyregion+'</td><td>'+emp_name+'</td></tr>');
+					})
+					$("#history-load").hide();
+				}else{
+					$(".history-none").html("无查询结果！");
+				}
+			}
+		})
+}
+// 获取现有菜品的id
+function getGoodsId() {
+	var params = [];
+ 	$('.goods').each(function() {
+ 		params.push($(this).attr("id"));
+ 	});
+ 	return params;
+}
+</script>
+<div style="margin-left:100px;margin-right:100px;">
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyleHeight">
+		<tr>
+			<th width="100px">优惠代码</th>
+			<td><input type="text"></td>
+		</tr>
+	</table>
+</div>
+<!-- 订单区域 -->
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyleHeight">
+	<tr>
+		<th width="100px">订单编号</th>
+		<td>{$detail[0].order_sn}</td>
+		<th width="100px">订单状态</th>
+		<td id="order_status">{$orderStatus[$detail[0].status]} <input type="hidden" value="{$detail[0].status}" id="status"></td>
+		<th width="100px">订单日期</th>
+		<td>{$detail[0].add_time|date_format:"%Y-%m-%d %H:%M"}</td>
+		<th width="100px">确认日期</th>
+		<td>{$detail[0].confirm_time|date_format:"%Y-%m-%d %H:%M"}</td>
+	</tr>
+	<tr>
+		<th>支付方式</th>
+		<td>{$detail[0].payment_name}</td>
+		<th>区域</th>
+		<td>
+			<select name="parent_area" id="parent_area">
+				{html_options options=$parent_areaList selected=$detail[0].parent_id}
+			</select>
+			<select name="area" id="area">
+				{html_options options=$areaList selected=$detail[0].region_id}
+			</select>
+
+		<!-- 	<input type="button" value="保存" style="width:50px;" id="region"> -->
+		</td>
+		<th>配送方式</th>
+		<td>{$detail[0].shipping_name}</td>
+		<th>要求送达时间</th>
+		<td>
+			{if $orderType != 'allorder'}
+				<input type="text" value="{$detail[0].request_time|date_format:'%Y-%m-%d %H:%M'}" name="request_time" class="datetime saveText" id="request_time" />
+				<input type="button" id="request" value="保存" class="saveButton" />
+			{else}
+				{$detail[0].request_time|date_format:'%Y-%m-%d %H:%M'}
+			{/if}
+		</td>
+	</tr>
+	<tr>
+		<th>买家</th>
+		<td>{$detail[0].buyer_name}</td>
+		<th>联系电话</th>
+		<td>{$detail[0].phone_mob}</td>
+		<th>送餐地址</th>
+		<td colspan="3">
+			{if $orderType != 'allorder'}
+				<input type="text" value="{$detail[0].address}" id="address" class="saveText width300" /> 
+				<input type="button" value="保存" id="ad" class="saveButton" />
+				<a href="javascript:void(0)" onclick="checksuperarea()" id="checkArea">查看区域</a>
+				<span id="checkArea_text" style="display:none;">查看区域</span>
+			{else}
+				{$detail[0].address}
+			{/if}
+		</td>
+	</tr>
+	<tr>
+		<th>收货人</th>
+		<td>
+			{if $orderType != 'allorder'}
+				<input type="text" value="{$detail[0].consignee}" id="consignee" class="saveText" />
+				<input type="button" value="保存" id="co" class="saveButton" />
+			{else}
+				{$detail[0].consignee}
+			{/if}
+		</td>
+		<th>收货人电话</th>
+		<td>
+			{if $orderType != 'allorder'}
+			<input type="text" value="{$detail[0].phone_mob}" id="phone_mob" class="saveText" />
+			<input type="button" value="保存" id="pb" class="saveButton" />
+			{else}
+				{$detail[0].phone_mob}
+			{/if}
+		</td>
+		<th>餐厅确认</th>
+		<td id="res_conf">
+			{if $detail[0].res_confirm == 0}未下单{/if}
+			{if $detail[0].res_confirm == 1}已确认{/if}
+			{if $detail[0].res_confirm == 2}已下单{/if}
+			{if $detail[0].res_confirm == 3}驳回{/if}
+		</td>
+		<th>第三方订单</th>
+		<td>
+			{if $detail[0].if_plat == N}
+				是
+			{else}
+				否
+			{/if}
+		</td>
+		<!--<th>调度方式</th>
+		<td>
+			<select name="dispatch_type" id="dispatch_type">
+				{html_options options=$dispatchType selected=$detail[0].dispatch_type}
+			</select>
+		</td>-->
+	</tr>
+	<tr>
+		<th>订单备注</th>
+		<td colspan="3">{$detail[0].postscript}</td>
+		<th>配送类型</th>
+		<td>{$csOrder[$detail[0].cs_order_type]}</td>
+		<th>退款申请</th>
+		<td>
+			{if $detail[0].status == 37}
+			<span class="drawback"><a href="javascript:void(0)" onclick="agreeRefund()">同意</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="javascript:void(0)" onclick="rejectRefund()">拒绝</a></span>
+			{/if}
+		</td>
+	</tr>
+	<tr>
+		<th>客服备注</th>
+		<td colspan="3" id="kf1">{$detail[0].remark1}</td>
+		<td colspan="4">
+			<textarea name="kfremark" id="kf" class="saveText redColor" disabled="disabled"></textarea>
+			<input type="button" value="添加" id="kfremark" class="saveButton" />
+		</td>
+	</tr>
+	<tr>
+		<th>调度备注</th>
+		<td colspan="3" id="re2">{$detail[0].remark2}</td>
+		<td colspan="4">
+			<textarea name="ddremark" id="dd" class="saveText redColor"></textarea>
+			<input type="button" value="添加" id="ddremark" class="saveButton" />
+		</td>
+	</tr>
+	<tr>
+		<th>发票类型</th>
+		<td>
+		{if $detail[0].invoice_type ==0}
+			公司
+			{else}
+			个人
+		{/if}
+		</td>
+		<th>发票title</th>
+		<td colspan="5">{$detail[0].invoice_title}</td>
+		<!-- <th>餐厅备注</th>
+		<td colspan="3">{$detail[0].receipt_remark}</td> -->
+		<input type="hidden" value="{$detail[0].order_id}" id="order_id" />
+		<input type="hidden" id="invoice" value="{$detail[0].invoice_title}">
+		<input type="hidden" value="orderdetail" id="order_type_region" />
+	</tr>
+</table>	
+</div>
+<!-- 店铺区域 -->
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyleHeight">
+		<tr>
+			<th width="100px">店铺</th>
+			<td>{$storeinfo.store_name}</td>
+			<th width="100px">联系电话</th>
+			<td>{$storeinfo.tel}</td>
+			<th width="100px">合作伙伴</th>
+			<td>{$partner[$detail[0].from_partner]}</td>
+			<th>合作伙伴订单编号</th>
+			<td>{$detail[0].partner_order_id}</td>
+		</tr>
+		<tr>
+			<th>店铺地址</th>
+			<td>{$storeinfo.address}</td>
+			<th>取餐时间</th>
+			<td>
+			{if $detail[0].getfood_time ==0}
+				
+			{else}
+			 {$detail[0].getfood_time|date_format:"%Y-%m-%d %H:%M:%S"}
+			{/if}
+			</td>
+			<th>订单类型</th>
+			<td colspan="3">{$orderTp[$detail[0].order_type]}</td>
+		</tr>
+	</table>
+</div>
+<div id="tabs" style="margin:0 20px;">
+	<ul>
+		<li><a href="#tabs-1">菜品</a></li>
+		<li><a href="#tabs-2">订单操作历史</a></li>
+		<li><a href="#tabs-3">历史订单</a></li>
+	</ul>
+	<div id="tabs-1">
+		<!-- 菜品区域 -->
+		<div id="list">
+			<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyleHeight">
+				<tr id="goods_tr">
+					<th>菜品</th>
+					<th>数量</th>
+					<th>单价</th>
+					<th>包装费</th>
+					<th>规格</th>
+					<th>描述</th>
+					<th>当前折扣</th>
+					<th>会员价</th>
+					<th>无票折扣</th>
+					<th>有票折扣</th>
+					<!-- onclick="openDialog(openUrl('custom/crmorder/allorder?order_sn=1210747159&search=1'), '700', '500', '查看发票', true);return false;" -->
+					{if $orderType != 'allorder'}
+					<th id ="addgoods_th"><a href="javascript:void(0)" class="goods_color" onclick="openDialog(openUrl('/custom/crmorder/addGoods?store_id={$detail[0].seller_id}&order_id={$detail[0].order_id}&goods_id='+getGoodsId()), '900', '500', '添加菜品', true);">添加菜品</a></th>
+					{/if}
+				</tr>
+				
+				{if $goodsdetail|count > 0}
+				{foreach from=$goodsdetail item = goods}
+				<tr class="discolor goods" id="{$goods.goods_id}">
+					<td align="center">{$goods.goods_name}</td>
+					<td align="center"><input type="text" value="{$goods.quantity}" class="quantity changetext" style="width:80px;text-align:right;" /></td>
+					<td align="center"><input type="text" value="{$goods.price}" class="price changetext" style="width:80px;text-align:right;" /></td>
+					<td align="center"><input type="text" value="{$goods.packing_fee}" class="packing_fee changetext" style="width:80px;text-align:right;" /></td>
+					<td align="center">{$goods.specification}</td>
+					<td align="center"><input type="text" value="{$goods.goods_remark}" class="goods_remark" style="width:200px" /><input type="hidden" class="spec_id" value="{$goods.default_spec}"></td>
+					<td align="right" class="discount"><input type="hidden" value="{$goods.discount}" class="goods_discount">{$goods.discount}</td>
+					<td align="right">{$goods.member_price}</td>
+					<td align="right">{$goods.nreceipt_discount}</td>
+					<td align="right">{$goods.receipt_discount}</td>
+					{if $orderType != 'allorder'}
+					<td align="center"><a href="#" class="goods_color" onclick="dropGoods({$goods.goods_id});return false;">删除</a></td>
+					{/if}
+				</tr>
+				{/foreach}
+					{if $orderType != 'allorder'}
+						<tr style="line-height: 36px;height: 36px;">
+							<td colspan="11" align="center">
+								<input class="ui-button ui-widget ui-state-default ui-corner-all" type="button" value="保存菜品" id="saveOrderGoods" onclick="saveOrderGoods()" />
+							</td>
+						</tr>
+					{/if}
+				{else}
+				<!-- <tr id="goods_none"></tr> -->
+				<tr id="goods_none"><td colspan="11" align="center">无查询结果</td></tr>
+				{/if}
+			</table>
+		</div>
+	</div>
+	<div id="tabs-2">
+		<div id="list">
+			<table style="width:100%" id="table-operate" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyleHeight">
+				<tr>
+					<th>操作日期</th>
+					<th>操作人</th>
+					<th>从</th>
+					<th>改为</th>
+					<th>备注</th>
+				</tr>
+				<!-- {if $oper|count > 0}
+				{foreach from=$oper item = ope}
+				<tr class="discolor" align="center">
+					<td>{$ope.log_time|date_format:"%Y-%m-%d %H:%M:%S"}</td>
+					<td>{$ope.emp_name}</td>
+					<td>{$orderStatus[$ope.order_status]}</td>
+					<td>{$orderStatus[$ope.changed_status]}</td>
+					<td>{$ope.remark}</td>
+				</tr>
+				{/foreach}
+				{else}{/if} -->
+				<tr id="operate-load"><td colspan="5" align="center" class="operate-none">加载中...</td></tr>
+			</table>
+		</div>
+	</div>
+	<div id="tabs-3">
+		<div id="list">
+			<table style="width:100%" id="table-history" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyleHeight">
+				<tr>
+					<th>订单编号</th>
+					<th>下单时间</th>
+					<th>地址</th>
+					<th>餐厅</th>
+					<th>联系电话</th>
+					<th>收货人所在区域</th>
+					<th>配送员</th>
+				</tr>
+				<!-- {if $historyOrder.is_success == '1'}
+				{foreach from=$historyOrder.result item = history}
+				<tr class="discolor">
+					<td>{$history.order_sn}</td>
+					<td>{$history.add_time}</td>
+					<td>{$history.Address}</td>
+					<td>{$history.store_name}</td>
+					<td>{$history.phone_mob}</td>
+					<td>{$history.buyregion}</td>
+					<td>{$history.emp_name}</td>
+				</tr>
+				{/foreach}
+				{else}
+				{/if} -->
+				<tr id="history-load"><td colspan="7" align="center" class="history-none">加载中...</td></tr>
+			</table>
+			<div id="show-page">
+				<a href="javascript:void(0)" onclick="ajaxPageHis('0')">上一页</a>
+				<a href="javascript:void(0)" onclick="ajaxPageHis('1')">下一页</a>当前第<input type="text" id="history-current-page" value="1" style="width:30px;">页共<span id="history-total-page"></span>页
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 计算区域 -->
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyleHeight">
+		<tr>
+			<th width="15%"><!-- 税点 --></th>
+			<td align="right" width="20%"><!-- 0.00 --></td>
+			<th width="100px" width="15%">快递费</th>
+			<td align="right" width="20%" id="shipping_fee">{$detail[0].shipping_fee}</td>
+			<th width="100px" width="15%">实收金额</th>
+			<td align="right" width="15%" id="actual_receipt">{$detail[0].actual_receipt}</td>
+		</tr>
+		<tr>
+			<th><!-- 餐厅管理费 --></th>
+			<td align="right"><!-- <input type="text" id="management_fee" class="changetext" value="{$detail[0].management_fee}" style="width:80px;text-align:right;" /> --></td>
+			<th>菜品总额</th>
+			<td align="right" id="goods_amount">{$detail[0].goods_amount}</td>
+			<th>实付金额</th>
+			<td align="right" id="actual_expend">{$detail[0].actual_expend}</td>
+		</tr>
+		<tr>
+			<th><!-- 采购价 --></th><td align="right" id="purchase_price"><!-- 0.00 --></td>
+			<th>包装费</th><td align="right" id="packing_fee">{$detail[0].packing_fee}</td>
+			<th>实收快递费</th><td align="right" id="actual_receipt_sp">{$detail[0].actual_receipt_sp}</td>
+		</tr>
+		<tr>
+			<th>应付总金额</th><td align="right" id="buy_amount" class="redColor">{$detail[0].buy_amount}</td>
+			<th>应收总金额</th><td align="right" id="order_amount" class="redColor">{$detail[0].order_amount}</td>
+			<th>实付包装费</th><td align="right" id="actual_packingfee">{$detail[0].actual_packingfee}</td>
+		</tr>
+		<tr>
+			<th>支付状态</th>
+			<td align="right">
+			{if $detail[0].if_pay ==0}
+				未付
+				{else}
+				已付
+			{/if}
+			</td>
+			<th>金额调整</th>
+			<td align="right" id="prefer_fee">{$detail[0].prefer_fee}</td>
+			<th>原始应收总额</th>
+			<td align="right" id="orignalorder_amount">{$detail[0].orignalorder_amount}</td>
+		</tr>
+	</table>
+</div>
+{if $orderType != 'allorder'}
+<div style="height:70px;"></div>
+<div class="fixedBottom inputstyle">
+	<ul>
+		<!-- <li><input type="button" value="上一条" onclick="window.location='/custom/crmorder/order?order_id={$AOrder.prevOrder}'" {if $AOrder.prevOrder == NULL} disabled='ture' {/if}/></li> -->
+		<!-- <li><input type="button" value="确认订单" id="confirmOrder"/></li> -->
+		<!-- <li><input type="button" value="保存订单" id="saveOrder" /></li> -->
+		<!-- <li><input type="button" value="保存菜品" id="saveOrderGoods" onclick="saveOrderGoods()" /></li> -->
+		<li><input type="button" value="餐厅确认" id="resconfirm" class="resconfirm" onclick="resConfirm()" {if $detail[0].res_confirm == 1} disabled='ture' {/if}/></li>
+		{if $detail[0].if_laike}
+		<li><input type="button" value="下单" id="placeOrder" onclick="placeOrder()" {if $detail[0].res_confirm == 1 ||  $detail[0].res_confirm == 2} disabled='ture' {/if}/></li>
+		{/if}
+		<li><input type="button" value="关闭页面" id="windowClose" /></li>
+		<!-- <li><input type="button" value="下一条" onclick="window.location='/custom/crmorder/order?order_id={$AOrder.nextOrder}'" {if $AOrder.nextOrder == NULL} disabled='ture' {/if}/></li> -->
+		<input type="hidden" id="if_laike" value="{$detail[0].if_laike}">
+		<input type="hidden" id="if_goods_change" value="1">
+	</ul>
+</div>
+{/if}
+</div>
+<script>
+$(function() {
+	// updatefee("init");
+	
+	// 关闭窗口
+	$("#windowClose").click(function() {
+		windowClose();
+	})
+	// 更新菜品信息
+	$('table').on('change', 'tr td .changetext', function() {
+		// updatefee();
+		$("#if_goods_change").val("0");
+	})
+	// 保存订单
+	$("#saveOrder").click(function() {
+		openDialogNote();
+		var order_id = $("#order_id").val();
+		var getGoodsAllArr = getGoodsAll();
+		// console.log($.toJSON(getGoodsAllArr));
+		$.ajax({
+			url: "/custom/crmorder/saveOrder",
+			type: "POST",
+			dataType: "JSON",
+			data: { "order_id": {$detail[0].order_id}, "value": $.toJSON(getGoodsAllArr) },
+			error: function(XMLHttpRequest){
+				// $("body").append("<div id='addBox'></div>");
+				// $("#addBox").html("保存失败！").show().delay(2000).fadeOut(200);
+				alert("error");
+			},
+			success: function(result){
+				// $("body").append("<div id='addBox'></div>");
+				if(result == 1) {
+					// $("#addBox").html("保存成功").show().delay(700).fadeOut(200);
+					saveLocalStorage(order_id, '{$username}');
+					dialogNote("保存成功");
+				} else {
+					// $("#addBox").html("保存失败").show().delay(2000).fadeOut(200);
+					dialogNote("保存失败");
+				}
+			}
+		})
+	})
+	//确认订单
+	$("#confirmOrder").click(function(){
+		if($("#area").val() == 178){
+			alert("区域空白,不可确认");
+			return false;
+		}
+		openDialogNote();
+		var order_id        = $("#order_id").val();
+		var consignee       = $("#consignee").val();
+		var phone_mob       = $("#phone_mob").val();
+		var address         = $("#address").val();
+		var buildingid      = $("#area").val();
+		var status          = $("#status").val();
+		var kf1             = $("#kf1").text();
+		var request_time    = $("#request_time").val();
+		var management_fee  = 0;
+		var prefer_fee      = $("#prefer_fee").text();
+		var shipping_fee    = $("#shipping_fee").text();
+		var goods           = getGoodsInfo();
+		var params = {
+			order_id:order_id,
+			consignee:consignee,
+			phone_mob:phone_mob,
+			address:address,
+			buildingid:buildingid,
+			status:status,
+			kf1:kf1,
+			request_time:request_time,
+			management_fee:management_fee,
+			prefer_fee:prefer_fee,
+			shipping_fee:shipping_fee,
+			reason:'',
+			goods:goods,
+		};
+
+		$.ajax({
+			url: "/custom/crmorder/confirmOrder",
+			type: "POST",
+			data: params,
+			success: function(response){
+				if(response == 1){
+					socketUpdateOrder('{$username}', '{$empname}', {$detail[0].order_id});
+					dialogNote("确认成功");
+					saveLocalStorage(order_id, '{$username}');					
+					window.setTimeout(windowClose, 1000);
+				} else if(response == -1){
+					dialogNote("确认失败");
+				} else if(response == -2){
+					dialogNote("此订单已确认");
+				} else if(response == -10){
+					dialogNote("请重新登陆");
+				}
+			},
+			error:function(){
+				alert('error');
+			}
+
+		})
+	})
+	// $("#placeOrder").click(function(){
+	// 	alert(123);
+	// 	  $(this).attr("disabled","disabled");    
+	// })
+});
+// 餐厅确认
+function resConfirm(){
+	var if_goods_change = $("#if_goods_change").val();
+	if(if_goods_change == 0){
+		alert("您修改的菜品尚未保存，请先保存！");
+		return false;
+	}
+	var if_laike = $("#if_laike").val();
+	var res_conf = $.trim($("#res_conf").html());
+	var cs_order_status = {$detail[0].cs_order_type};
+	if(if_laike > 0){
+		if(!confirm("该餐厅可以线上下单，确认手动下单吗？")){
+			return false;
+		}
+	}
+	if(res_conf == "已下单" || res_conf == "已确认"){
+		if(!confirm("餐厅已下单是否继续？")){
+			return false;
+		}
+	}
+		openDialogNote();
+		var order_id = $("#order_id").val();
+		$.ajax({
+			url: "/custom/crmorder/resConfirm",
+			type: "POST",
+			dataType: "JSON",
+			data: "order_id="+order_id,
+			success: function(result){
+				if(result == 1) {
+					// $("#addBox").html("保存成功").show().delay(700).fadeOut(200);
+					// saveLocalStorage(order_id, '{$username}');
+					$("#resconfirm").attr("disabled","true");
+					$("#res_conf").html("已确认");
+					// if(cs_order_status == 2 || cs_order_status == 3){
+						// socketUpdateOrder('{$username}', '{$empname}', {$detail[0].order_id});
+					// }
+					dialogNote("餐厅确认成功");
+				} else {
+					// $("#addBox").html("保存失败").show().delay(2000).fadeOut(200);
+					dialogNote("餐厅确认失败");
+				}
+			}
+		})
+}
+// 餐厅下单
+function placeOrder(){
+		openDialogNote();
+		var order_id = $("#order_id").val();
+		$.ajax({
+			url: "/custom/crmorder/placeOrder",
+			type: "POST",
+			dataType: "JSON",
+			data: "order_id="+order_id,
+			success: function(result){
+				if(result == 1) {
+					$("#res_conf").html("已下单");
+					$("#placeOrder").hide();
+					dialogNote("下单成功");
+				} else if(result == -1) {
+					dialogNote("请勿重复下单！");
+				} else {
+					dialogNote("下单失败");
+				}
+			}
+		})
+}
+// 保存菜品信息
+function saveOrderGoods(){
+	openDialogNote();
+	var orderGoods = getGoodsInfo();
+	$.ajax({
+			url: "/custom/crmorder/saveOrderGoods",
+			type: "POST",
+			dataType: "JSON",
+			data: { "order_id": {$detail[0].order_id}, "orderGoods": $.toJSON(orderGoods) },
+			success: function(result){
+				if(result == 1) {
+					$("#if_goods_change").val("1");
+					ajaxUpdateFee();
+					dialogNote("保存成功");
+				} else {
+					dialogNote("保存失败");
+				}
+			}
+		})
+}
+// 金额相关信息
+var fee = getGoodsFee();
+var initGoodsFee = totalGoods();
+var paymentStatus = "{$paymentStatus}";
+/**
+ * 获取菜品各项金额
+ * @return 
+ */
+function getGoodsFee() {
+	var fee = {};
+		fee["shipping_fee"]	= $("#shipping_fee").text();	// 快递费
+		fee["actual_expend"]		= $("#actual_expend").text();		// 实付金额
+		fee["management_fee"]		= 0;								// 餐厅管理费
+		fee["goods_amount"]			= $("#goods_amount").text();		// 菜品总额
+		fee["actual_receipt"]		= $("#actual_receipt").text();		// 实收金额
+		fee["packing_fee"]			= $("#packing_fee").text();			// 包装费
+		fee["actual_receipt_sp"]	= $("#actual_receipt_sp").text();	// 实收快递费
+		fee["buy_amount"]			= $("#buy_amount").text();			// 应付总金额
+		fee["order_amount"]			= $("#order_amount").text();		// 应收总金额
+		fee["actual_packingfee"]	= $("#actual_packingfee").text();	// 实付包装费
+		fee["prefer_fee"]			= $("#prefer_fee").text();			// 金额调整
+		fee["orignalorder_amount"]	= $("#orignalorder_amount").text();	// 原始应收总额
+		fee["purchase_price"]		= $("#purchase_price").text();		// 采购价
+	return fee;
+}
+
+/**
+ * 获取菜品信息
+ * @return 
+ */
+function getGoodsInfo() {
+	var goods = {};
+	$(".goods").each(function() {
+		goods[$(this).attr("id")] = {};
+		goods[$(this).attr("id")]["quantity"]		= $(this).find(".quantity").val();		// 数量
+		goods[$(this).attr("id")]["price"]			= $(this).find(".price").val();			// 单价
+		goods[$(this).attr("id")]["packing_fee"]	= $(this).find(".packing_fee").val();	// 包装费
+		goods[$(this).attr("id")]["goods_remark"]	= $(this).find(".goods_remark").val();	// 描述
+		goods[$(this).attr("id")]["spec_id"]	    = $(this).find(".spec_id").val();       // 规格
+		goods[$(this).attr("id")]["discount"]	    = $(this).find(".goods_discount").val();// 折扣率
+	});
+	return goods;
+}
+
+/**
+ * 获取菜品信息和菜品各项金额
+ * @return array(菜品信息Arr, 菜品各项金额Arr)
+ */
+function getGoodsAll() {
+	var order = {};
+		order["goodsInfo"] 	= getGoodsInfo();
+		order["goodsFee"] 	= getGoodsFee();
+	return order;
+}
+
+/**
+ * 计算菜品各项金额
+ * @return array(菜品总额, 包装费, 菜品金额合计)
+ */
+function totalGoods() {
+	// 菜品各项金额
+	var totalGoods = new Array();
+		totalGoods["goods_price"]	= 0;	// 菜品金额 = 菜品数量 * 单价
+		totalGoods["packing_fee"]	= 0;	// 包装费
+		totalGoods["order_amount"]	= 0;	// 应收总金额 = 菜品金额 + 包装费 + 实收快递费
+		totalGoods["purchase_price"]= 0;	// 采购价 = 菜品金额 * 折扣
+		totalGoods["buy_amount"]	= 0;	// 应付总金额 = 餐厅管理费 + 包装费 + 采购价
+	$(".goods").each(function() {
+		var quantity 		= $(this).find(".quantity").val();				// 数量
+		var price 			= $(this).find(".price").val();					// 价格
+		var packing_fee_one	= $(this).find(".packing_fee").val();			// 未计算数量的包装费
+		var packing_fee		= accMul(quantity, packing_fee_one);			// 包装费
+		var discount		= Number($(this).find(".discount").text());		// 折扣
+		var goods_price		= accMul(quantity, price);						// 菜品金额
+		var purchase_price	= accMul(goods_price, discount);				// 采购价
+		var order_amount	= accAdd(goods_price, packing_fee);				// 应收总金额
+		var buy_amount		= accAdd(packing_fee, purchase_price); 			// 应付总金额
+		totalGoods["goods_price"]	= accAdd(totalGoods["goods_price"], goods_price);
+		totalGoods["packing_fee"]	= accAdd(totalGoods["packing_fee"], packing_fee);
+		totalGoods["order_amount"]	= accAdd(totalGoods["order_amount"], order_amount);
+		totalGoods["purchase_price"]= accAdd(totalGoods["purchase_price"], purchase_price);
+		totalGoods["buy_amount"]	= accAdd(totalGoods["buy_amount"], buy_amount);
+	});
+	totalGoods["order_amount"] = accAdd(totalGoods["order_amount"], fee["shipping_fee"]);
+	totalGoods["buy_amount"] = totalGoods["buy_amount"];
+	return totalGoods;
+}
+
+/**
+ * 更新菜品各项金额
+ * @param str	type 初始化加载时数据库中有的值不用更新
+ * @return
+ */
+function updatefee(_type) {
+	var _type = _type ? _type : "";
+	var goodsFee = totalGoods();
+	/* if(paymentStatus == 'online') {
+		goodsFee["goods_price"] 	= accSub(goodsFee["goods_price"], initGoodsFee["goods_price"]);
+		goodsFee["packing_fee"]		= accSub(goodsFee["packing_fee"], initGoodsFee["packing_fee"]);
+		goodsFee["order_amount"]	= accSub(goodsFee["order_amount"], initGoodsFee["order_amount"]);
+		// goodsFee["purchase_price"]	= accSub(goodsFee["purchase_price"], initGoodsFee["purchase_price"]);
+		// goodsFee["buy_amount"]		= accSub(goodsFee["buy_amount"], initGoodsFee["buy_amount"]);
+	} */
+	if(_type == "" || paymentStatus == 'online') {
+		/* if(paymentStatus == 'online') {
+			goodsFee["goods_price"]	= accAdd(goodsFee["goods_price"], fee["goods_amount"]);
+			goodsFee["packing_fee"]	= accAdd(goodsFee["packing_fee"], fee["packing_fee"]);
+			goodsFee["order_amount"]= accAdd(goodsFee["order_amount"], fee["order_amount"]);
+		} */
+		goodsFee["prefer_fee"]	= accSub(goodsFee["order_amount"], fee["orignalorder_amount"]);
+		$("#goods_amount").text(goodsFee["goods_price"].toFixed(2));	// 菜品总额
+		$("#packing_fee").text(goodsFee["packing_fee"].toFixed(2));		// 包装费
+		$("#order_amount").text(goodsFee["order_amount"].toFixed(2));	// 应收总金额
+		$("#prefer_fee").text(goodsFee["prefer_fee"].toFixed(2));		// 金额调整
+	}
+	$("#purchase_price").text(goodsFee["purchase_price"].toFixed(2));	// 采购价
+	$("#buy_amount").text(goodsFee["buy_amount"].toFixed(2));			// 应付总金额
+}
+/**
+ * 更新菜品各项金额
+ * @param str	type 初始化加载时数据库中有的值不用更新
+ * @return
+ */
+function ajaxUpdateFee() {
+	var order_id = $("#order_id").val();
+	// alert(order_id);
+	$.ajax({
+		type:"POST",
+		url:"/custom/crmorder/ajaxUpdateFee",
+		dataType: "json",
+		data:"order_id="+order_id,
+		success:function(response){
+			var goodsFee = response.data;
+			console.log(response);
+			$("#goods_amount").text(goodsFee["goods_amount"]);	// 菜品总额 goods_amount
+			$("#packing_fee").text(goodsFee["packing_fee"]);		// 包装费 packing_fee
+			$("#order_amount").text(goodsFee["order_amount"]);	// 应收总金额 order_amount
+			$("#prefer_fee").text(goodsFee["prefer_fee"]);		// 金额调整 prefer_fee
+			// $("#purchase_price").text(goodsFee["should_expend_ga"]);	// 采购价 should_expend_ga
+			$("#buy_amount").text(goodsFee["buy_amount"]);			// 应付总金额 buy_amount
+			$("#actual_receipt").text(goodsFee["actual_receipt"]);	// 菜品总额 goods_amount
+			$("#actual_expend").text(goodsFee["actual_expend"]);		// 包装费 packing_fee
+			$("#actual_receipt_sp").text(goodsFee["actual_receipt_sp"]);	// 应收总金额 order_amount
+			$("#actual_packingfee").text(goodsFee["actual_packingfee"]);		// 金额调整 prefer_fee
+		}
+	})
+}
+//删除菜品
+function dropGoods(goods_id) {
+	$("#"+goods_id).remove();
+	// updatefee();
+	$("#if_goods_change").val("0");
+}
+
+//修改收货信息
+function modifyReceipt(value,type,order_id) {
+	$.ajax({
+		type:"POST",
+		url:"/custom/crmorder/modifyReceipt",
+		dataType: "text",
+		data:"value="+value+"&type="+type+"&order_id="+order_id,
+		success:function(response){
+			$("body").append("<div id='addBox'></div>");
+			if(type == "kfremark"){
+				$("#kf1").html(response);
+				$("#addBox").html("保存成功").show().delay(700).fadeOut(200);
+			return false;
+			}
+			if(type == "ddremark"){
+				$("#re2").html(response);
+				$("#addBox").html("保存成功").show().delay(700).fadeOut(200);
+			return false;
+			}			
+			if(response == 1){
+				$("#addBox").html("保存成功").show().delay(700).fadeOut(200);
+			}else{
+				$("#addBox").html("保存失败").show().delay(700).fadeOut(200);
+			}
+		}
+	})
+}
+
+// 订单同意退款理由
+function agreeRefund() {
+	var order_id = $("#order_id").val();
+	var cooperate_id = '{$detail[0].from_partner}';
+	var partner_order_id = '{$detail[0].partner_order_id}';
+	openDialog(openUrl('/custom/crmorder/agreeRefund?order_id='+order_id+'&cooperate_id='+cooperate_id+'&partner_order_id='+partner_order_id), '400', '210', '同意退款理由', true);
+};
+// 订单拒绝退款理由
+function rejectRefund() {
+	var order_id = $("#order_id").val();
+	var cooperate_id = '{$detail[0].from_partner}';
+	var partner_order_id = '{$detail[0].partner_order_id}';
+	openDialog(openUrl('/custom/crmorder/rejectRefund?order_id='+order_id+'&cooperate_id='+cooperate_id+'&partner_order_id='+partner_order_id), '400', '210', '拒绝退款理由', true);
+};
+// 监听本地storage数据变化,当数据发生变化时,同步数据显示
+window.onstorage = function(event){
+	var status = {}
+	status.key = event.key;
+	status.oldValue = event.oldValue;
+	status.newValue = event.newValue;
+	status.url = event.url;
+	status.storage = event.storageArea;
+	getStorageItem(); // 数据发生变化时,重新获取数据
+}
+</script>
+
+{include file="$app_path/application/views/footer.phtml"}

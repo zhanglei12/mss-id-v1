@@ -1,0 +1,137 @@
+{include file="/data/web/crm.meishisong.mobi/application/views/header.phtml"}
+<script>
+$(function() {
+	// date
+	$(".dates").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: "yy-mm-dd",
+        autoSize: true
+	});
+});
+
+var socket = io.connect('http://crm.meishisong.mobi:11023');
+socket.on('new order', function (data){
+	$("#order_tr").siblings().remove();
+	mysqldata = data.hello;
+	for(var mysqlkey in mysqldata) {
+		var addtime = getLocalTime(mysqldata[mysqlkey]['add_time']);
+		var request = getLocalTime(mysqldata[mysqlkey]['request_time']);
+		var vip = ["否","是"];
+		var is_new = ["否","是"];
+		var order = ["0","电话订单","网络订单","手机订单","其他订单","微信订单","积分订单"];
+		var partner = ["","饿了吗","万得妙","3公里","3公里单店","美团","淘宝","买买圈","订餐小秘书","锦食送","趣活美食送","百度","新淘宝","荣昌洗衣","单店订单管理","活法儿","麻辣小龙虾"];
+		$("#order_tr").after(
+			'<tr class="discolor">\
+				<td><input type="checkbox"></td>\
+				<td></td>\
+				<td><a href="/custom/crmorder/order">'+mysqldata[mysqlkey]['order_sn']+'</a></td>\
+				<td>'+partner[mysqldata[mysqlkey]['from_partner']-100000]+'</td>\
+				<td>'+order[mysqldata[mysqlkey]['order_type']]+'</td>\
+				<td>'+vip[mysqldata[mysqlkey]['is_ordervip']]+'</td>\
+				<td>'+addtime+'</td>\
+				<td>'+request+'</td>\
+				<td>'+mysqldata[mysqlkey]['order_amount']+'</td>\
+				<td><a href="#" >'+mysqldata[mysqlkey]['consignee']+'</a></td>\
+				<td>'+mysqldata[mysqlkey]['phone_mob']+'</td>\
+				<td>'+mysqldata[mysqlkey]['address']+'</td>\
+				<td>'+is_new[mysqldata[mysqlkey]['is_new']]+'</td>\
+				<td>'+mysqldata[mysqlkey]['seller_name']+'</td>\
+				<td>'+mysqldata[mysqlkey]['region_name']+'</td>\
+				<td>'+mysqldata[mysqlkey]['status']+'</td>\
+				<td>确认 | 取消 | 查看</td>\
+			</tr>'
+		);
+	}	
+});
+</script>
+<div id="search">
+	<form name="searchFrom" class="searchFrom" action="" method="get">
+	<table class="inputstyle">
+		<tr>
+			<td width="20%">
+				<span>要求送达时间(起)</span>
+				<input type="text" value="{$request_times}" name="request_times" class="dates" />
+			</td>
+			<td width="20%">
+				<span>要求送达时间(止)</span>
+				<input type="text" value="{$request_timee}" name="request_timee" class="dates" />
+			</td>
+			<td width="20%">
+				<span>订单时间(起)</span>
+				<input type="text" value="{$add_times}" name="add_times" class="dates" />
+			</td>
+			<td width="20%">
+				<span>订单时间(止)</span>
+				<input type="text" value="{$add_timee}" name="add_timee" class="dates" />
+			</td>
+			<td width="20%">
+				<span>店铺名称</span>
+				<input type="text" name="seller_name" id="seller_name" value="{$seller_name}" />
+			</td>
+		</tr>
+		
+		<tr>
+			<td width="20%">
+				<span>订单编号(",")</span>
+				<input type="text" name="order_sn" id="order_sn" value="{$order_sn}" />
+			</td>
+			<td width="20%">
+				<span>收货人用户名</span>
+				<input type="text" name="consignee" id="consignee" value="{$consignee}" />
+			</td>
+			<td width="20%">
+				<span>收货人电话</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+			<td width="20%">
+				<span>快递员?</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+			<td width="20%">
+				<span>区域?</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+		</tr>
+		
+		<tr align="center">
+			<td colspan="5">
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 " />
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<tr>
+			<td colspan="9">共23条数据</td>
+		</tr>
+		
+		<tr id="order_tr">
+			<th><input type="checkbox"></th>
+			<th>序号</th>
+			<th>订单编号</th>
+			<th>合作伙伴</th>
+			<th>订单类型</th>
+			<th>VIP</th>
+			<th>下单时间</th>
+			<th>要求送达时间</th>
+			<th>订单金额</th>
+			<th>收货人</th>
+			<th>收货人电话</th>
+			<th>收货地址</th>
+			<th>是否为新用户</th>
+			<th>店铺名称</th>
+			<th>区域</th>
+			<th>状态</th>
+			<th>操作</th>
+		</tr>
+		<tr>
+			<td colspan="9">共23条数据</td>
+		</tr>
+	</table>
+</div>
+
+{include file="/data/web/crm.meishisong.mobi/application/views/footer.phtml"}

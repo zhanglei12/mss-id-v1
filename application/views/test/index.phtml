@@ -1,0 +1,148 @@
+<html>
+<head>
+<title>客服系统</title>
+<link rel="stylesheet" href="/public/css/jquery-ui-1.10.4.css" />
+<script src="/public/js/jquery-1.10.2.min.js"></script>
+<script src="/public/js/jquery-ui-1.10.4.min.js"></script>
+
+<link rel="stylesheet" href="/public/css/crmbase.css" />
+<script src="/public/js/crmbase.js"></script>
+
+<link rel="stylesheet" href="/public/css/nav.css" />
+
+<link rel="stylesheet" type="text/css" href="/public/css/ui.dropdownchecklist.themeroller.css">
+<script type="text/javascript" src="/public/js/ui.dropdownchecklist.js"></script>
+
+<script src="/public/js/socket.io.js"></script>
+<script>
+$(document).ready(function() {
+	// date
+	$(".dates").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: "yy-mm-dd",
+        autoSize: true
+	});
+	
+    $(".s11").dropdownchecklist( { firstItemChecksAll: true } );
+});
+
+</script>
+</head>
+<body>
+<div class="nav">
+	<ul class="dropdown dropdown-horizontal">
+		<li><a href="/custom/crmorder/allorder" class="dir">全部订单</a></li>
+		<li><a href="/custom/crmorder/neworder" class="dir">新订单</a></li>
+		<li><a href="/custom/crmorder/backorder" class="dir">已退回</a></li>
+		<!--<li><a href="./" class="dir">Products</a>
+			<ul>
+				<li><a href="./">Desktop</a></li>
+				<li><a href="./">Workstation</a></li>
+				<li><a href="./">Servers</a></li>
+				<li><a href="./">Motherboard</a></li>
+			</ul>
+		</li>-->
+	</ul>
+</div>
+
+
+<a href="#" onclick="openDialog(openUrl('custom/crmorder/allorder?order_sn=1210747159&search=1'), '700', '500', '查看发票', true);return false;">查看</a>
+<a href='/custom/crmorder/index'>url跳转</a>
+
+<div id="search">
+	<form name="searchFrom" class="searchFrom" action="test" method="get">
+	<table class="inputstyle">
+		<tr>
+			<td width="20%">
+				<span>开始日期</span>
+				<input type="text" value="{$startdate}" name="startdate" id="startdate" class="dates" />
+			</td>
+			<td width="20%">
+				<span>结束日期</span>
+				<input type="text" value="{$enddate}" name="enddate" id="enddate" class="dates" />
+			</td>
+			<td width="20%">
+				<span>订单编号(",")</span>
+				<input type="text" name="order_id" id="order_id" value="{$order_id}" />
+			</td>
+			<td width="20%">
+				<span>收货人用户名</span>
+				<input type="text" name="consignee" id="consignee" value="{$consignee}" />
+			</td>
+			<td width="20%">
+				<span>收货人电话</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+		</tr>
+		
+		<tr>
+			<td width="20%">
+				<span>店铺名称</span>
+				<input type="text" name="seller_name" id="seller_name" value="{$seller_name}" />
+			</td>
+			<td width="20%">
+				<span>All items selected</span><br>
+				<select id="s11a" class="s11" multiple="multiple">
+					<option selected="selected">All</option>
+					<option selected="selected">Low</option>
+					<option selected="selected">Medium</option>
+					<option selected="selected">High</option>
+				</select>
+			</td>
+		</tr>
+		
+		<tr align="center">
+			<td colspan="5">
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 " />
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+
+<div>
+	<table id="order_table" border="1" cellspacing="0">
+		<tr>
+			<td>序号</td>
+			<td><input type="checkbox"></td>
+			<td>订单编号</td>
+			<td>合作伙伴</td>
+			<td>订单类型</td>
+			<td>VIP</td>
+			<td>下单时间</td>
+			<td>要求送达时间</td>
+			<td>订单金额</td>
+			<td>收货人</td>
+			<td>收货人电话</td>
+			<td>收货地址</td>
+			<td>是否为新用户</td>
+			<td>店铺名称</td>
+			<td>区域</td>
+		</tr>
+		{section loop=$orderArr name=n}
+		<tr>
+			<td>{$smarty.section.n.index+1}</td>
+			<td><input type="checkbox"></td>
+			<td>{$orderArr[n].order_sn}</td>
+			<td><a href="">{$orderArr[n].from_partner}</a></td>
+			<td>{$orderArr[n].order_type}</td>
+			<td>{$orderArr[n].is_ordervip}</td>
+			<td>{$orderArr[n].add_time}</td>
+			<td>{$orderArr[n].request_time}</td>
+			<td>{$orderArr[n].order_amount}</td>
+			<td>{$orderArr[n].consignee}</td>
+			<td>{$orderArr[n].phone_mob}</td>
+			<td><a href="">{$orderArr[n].address}</a></td>
+			<td>{$orderArr[n].is_new}</td>
+			<td>{$orderArr[n].seller_name}</td>
+			<td>{$orderArr[n].region_name}</td>
+			<td>{$orderArr[n].status}</td>
+		</tr>
+		{/section}
+	</table>
+</div>
+
+</body>
+</html>

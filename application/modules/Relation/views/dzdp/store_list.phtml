@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>大众点评</title>
+</head>
+	<body>
+    <div>
+    <div>
+    <form action="/Relation/Dzdp/getStoreInfosOfDzdp?if_real=real" method="post">
+     区域：
+    {foreach from=$region_list item=region}
+    	<label><input name="regions[]" type="checkbox" value={$region.region_id} {$region.checked} />{$region.region_name}</label> 
+	{/foreach}
+    <br>
+    店铺：<input type="text" name="store_name">
+    <input type="submit" value="查询">
+    </form>
+    </div>
+    <table align="center" border="1px">
+    <tr><td>店名</td><td>区域</td><td>mss状态</td><td>大众状态</td>
+    {foreach from=$store_list item=store}
+    <tr>
+    	<td>{$store.store_name}</td>
+        <td>{$store.region}</td>
+        {if $store.state==1 }
+        <td>上架</td>
+        {else}
+        <td>下架</td>
+        {/if}
+        {if $store.status==1 }
+         <td><a class="dzstatus" id={$store.shopId} href="#" ss=2>上架</a></td>
+        {else}
+        <td><a class="dzstatus" id={$store.shopId} href="#" ss=1>下架</a></td>
+        {/if}
+    </tr>
+    {/foreach}
+    </table>
+    <div style="text-align:center;">{$page_list}</div>
+    <div>
+	</body>
+</html>
+<script src="/public/js/jquery-1.10.2.min.js"></script>
+<script>
+	$('.dzstatus').click(function(){
+		var store_id=$(this).attr('id');
+		var status=$(this).attr('ss');
+		$.ajax({
+			type:'GET',
+			url : "/Relation/Dzdp/changeStoreStatus?if_real=real&store_id="+store_id+'&status='+status,
+			dataType: "json",
+			success: function(result){
+					if(result.status===1){
+						alert('更新成功');
+						if(status==1){
+						$('#'+store_id).attr('ss',2);	
+						$('#'+store_id).html('上架');
+					}else{
+						$('#'+store_id).attr('ss',1);	
+						$('#'+store_id).html('下架');
+						}
+					}
+				},
+			error: function(result){
+				console.log(result);
+				}
+		
+			});
+		});
+</script>

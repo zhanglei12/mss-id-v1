@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+{include file='./header.phtml'}
+<script>
+//tab
+$(function() {
+$( "#tabs" ).tabs();
+});
+//时间插件
+$(function() {
+$( ".datepicker" ).datepicker();
+});
+</script>
+	<body>
+		<div id="tabs">
+		{include file='./allOrder.phtml'}
+		</div>
+		<div id="tabs-2">
+		{include file='./newOrder.phtml'}
+		</div>
+		<div id="tabs-3">
+		{include file='./backOrder.phtml'}
+		</div>
+	</body>
+</html>

@@ -1,0 +1,158 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script>
+$(function() {
+	$(".listDialog button").button();
+	
+	getParentArea();
+	$("#parent_area").change(function(){
+		getParentArea();
+	});
+});
+
+function ajaxSearchEmp(order_id) {
+	var emp_name	= $.trim($("#emp_name").val());
+	var emp_mobile	= $.trim($("#emp_mobile").val());
+	var selectArea	= $.trim($("#selectArea").is(':checked'));
+	var region 		= $("#city_region").find("option:selected").text();
+	console.log(selectArea);
+	$.ajax({
+		url: "/Scheduling/Scheduling/ajaxSearchEmp",
+		type: "POST",
+		dataType: "JSON",
+		data: "order_id="+order_id+"&emp_name="+emp_name+"&emp_mobile="+emp_mobile+"&selectArea="+selectArea+"&region="+region,
+		success: function(data){
+			var empData = data;
+			var empLen = getLength(empData);
+			var i = empLen + 1;
+			$(".empData").remove();
+			
+			for(var key=empLen-1; key>=0; key--) {
+				i--;
+				$("#empLine").after(
+					'<tr id="'+order_id+'" class="empData">\
+						<td align="center">'+i+'</td>\
+						<td><a href="#" onclick="selectEmp({$lgs_id}, '+order_id+', '+empData[key]['emp_id']+', \''+empData[key]['emp_name']+'\')">选择</a></td>\
+						<td>'+empData[key]['emp_name']+'</td>\
+						<td>'+empData[key]['emp_mobile']+'</td>\
+						<td>'+empData[key]['emp_region']+'</td>\
+						<td>'+empData[key]['order_num']+'</td>\
+						<td>'+empData[key]['dayc_order']+'</td>\
+						<td>'+empData[key]['ep_status2']+'</td>\
+						<td>'+empData[key]['ep_status']+'</td>\
+						<td>'+empData[key]['distance']+'</td>\
+						<td>'+empData[key]['c_position']+'</td>\
+						<td>'+empData[key]['c_area']+'</td>\
+						<td>'+empData[key]['r_building']+'</td>\
+						<td>'+empData[key]['cr_distance']+'</td>\
+					</tr>'
+				);
+			}
+		}
+	})
+}
+/**
+ * 选择配送员
+ * @param	int	lgs_id		物流ID
+ * @param	int	order_id	订单ID
+ * @param	int	emp_id		配送员ID
+ * @param	int	emp_name	配送员姓名
+ * @return 
+ */
+function selectEmp(lgs_id, order_id, emp_id, emp_name) {
+	// console.log(lgs_id);
+	// console.log(order_id);
+	// console.log(emp_id);
+	// console.log(emp_name);
+	var thisClass = String(order_id) + String(lgs_id);
+	if(confirm("是否确认将订单改派给快递员"+emp_name+"?")){
+		$.ajax({
+			url: "/Scheduling/Scheduling/selectEmp",
+			type: "POST",
+			dataType: "text",
+			data: "lgs_id="+lgs_id+"&order_id="+order_id+"&emp_id="+emp_id,
+			success: function(data){
+				if(data > 0){
+					saveLocalStorage(order_id, '{$username}');
+					alert("改派成功");
+					$("."+thisClass).html(emp_name);
+					closeDialog();
+				} else {
+					alert("改派失败");
+				}
+			}
+		})
+	}
+}
+</script>
+<div id="search">
+	<form name="searchFrom" class="searchFrom" action="" method="get" onsubmit="ajaxSearchEmp({$order_id});return false;">
+	<table class="inputstyle">
+		<tr>
+			<td width="20%">
+				<span>快递员姓名</span>
+				<input type="text" name="emp_name" id="emp_name" value="{$emp_name}" />
+			</td>
+			<td width="20%">
+				<span>快递员电话</span>
+				<input type="text" name="emp_mobile" id="emp_mobile" value="{$emp_mobile}" />
+			</td>
+			<td width="20%">
+				<span>
+					城市
+					<label>
+						<input type="checkbox" name="selectArea" id="selectArea" checked/>
+						只显示本区快递员
+					</label>
+				</span>
+				<select name="city_region" id="city_region" class="area">
+					{html_options options=$parent_areaList}
+				</select>
+			</td>
+			<td width="40%">
+				<input type="submit" name="search" id="allorder_search" value=" 搜 索 " />
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+
+<div id="list" class="listDialog">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr id="empLine">
+			<th>序号</th>
+			<th>操作</th>
+			<th>快递员姓名2</th>
+			<th>送餐员联系方式</th>
+			<th>送餐员所属区域</th>
+			<th>订单数</th>
+			<th>今日完成订单数</th>
+			<th>在岗状态</th>
+			<th>状态</th>
+			<th>距离餐厅</th>
+			<th>当前位置</th>
+			<th>当前区域</th>
+			<th>目的地位置</th>
+			<th>目的地距离餐厅距离</th>
+		</tr>
+		
+		{section loop=$empArr name=n}
+		<tr class="empData">
+			<td align="center">{$smarty.section.n.index+1}</td>
+			<td><a href="#" onclick="selectEmp({$lgs_id}, {$order_id}, {$empArr[n].emp_id}, '{$empArr[n].emp_name}')">选择</a></td>
+			<td>{$empArr[n].emp_name}</td>
+			<td>{$empArr[n].emp_mobile}</td>
+			<td>{$empArr[n].emp_region}</td>
+			<td>{$empArr[n].order_num}</td>
+			<td>{$empArr[n].dayc_order}</td>
+			<td>{$empArr[n].ep_status2}</td>
+			<td>{$empArr[n].ep_status}</td>
+			<td>{$empArr[n].distance}</td>
+			<td>{$empArr[n].c_position}</td>
+			<td>{$empArr[n].c_area}</td>
+			<td>{$empArr[n].r_building}</td>
+			<td>{$empArr[n].cr_distance}</td>
+		</tr>
+		{/section}
+	</table>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}

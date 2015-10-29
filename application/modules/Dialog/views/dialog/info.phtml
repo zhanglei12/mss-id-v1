@@ -1,0 +1,177 @@
+{include file="../header.phtml"}
+<style>
+.order_body{
+	width:1200px;
+	height:500px;
+	margin-left:50px;
+	margin-right:100px;
+}
+.new_order{
+
+}	
+.order_title{
+	list-style:none;
+	float:left;
+}
+.order_title li{
+	float:left;
+	margin-right:20px;
+}
+#order_table td{
+	white-space: nowrap;
+}
+.NoNewline
+{
+word-break: keep-all;/*必须*/
+}
+</style>
+<div class="order_body">
+<div>
+	用户名：<input type="text">
+	用户联系电话：<input type="text">
+	快递员：<input type="text">
+	订单编号：<input type="text">
+	区域：<select name="" id=""></select>
+	<input type="button" value="搜索">
+	<input type="button" value="批量确认">
+</div>
+<div class="new_order">
+<!-- <ul class="order_title">
+	<li></li>
+	<li><input type="checkbox"></li>
+	<li>订单编号</li>
+	<li>合作伙伴</li>
+	<li>订单类型</li>
+	<li>VIP</li>
+	<li>下单时间</li>
+	<li>要求送达时间</li>
+	<li>订单金额</li>
+	<li>收货人</li>
+	<li>收货人电话</li>
+	<li>收货地址</li>
+	<li>是否为新用户</li>
+	<li>店铺名称</li>
+	<li>区域</li>
+	<li>状态</li>
+	<li></li>
+	<li></li>
+	<li></li>
+</ul>
+<ul class="order_title">
+	<li>1</li>
+	<li><input type="checkbox"></li>
+	<li><a href="">1414366770</a></li>
+	<li>锦食送</li>
+	<li>订单类型</li>
+	<li>否</li>
+	<li>2014-06-03 11:58</li>
+	<li>2014-06-03 11:58</li>
+	<li>115.00</li>
+	<li><a href="">李锦帅(1)</a></li>
+	<li>13120321516</li>
+	<li>星科大厦A座4010</li>
+	<li>是</li>
+	<li>京味斋（五道口）</li>
+	<li>五道口</li>
+	<li>提交</li>
+	<li><a href="">确认</a></li>
+	<li><a href="">取消</a></li>
+	<li><a href="">关闭</a></li>
+</ul> -->
+
+ <table id="order_table" border="1" cellspacing="0">
+ 	<tr>
+ 		<td></td>
+ 		<td><input type="checkbox"></td>
+ 		<td>订单编号</td>
+ 		<td>合作伙伴</td>
+ 		<td>订单类型</td>
+ 		<td>VIP</td>
+ 		<td>下单时间</td>
+ 		<td>要求送达时间</td>
+ 		<td>订单金额</td>
+ 		<td>收货人</td>
+ 		<td>收货人电话</td>
+ 		<td>收货地址</td>
+ 		<td>是否为新用户</td>
+ 		<td>店铺名称</td>
+ 		<td>区域</td>
+ 		<td>状态</td>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 	</tr>
+ 	<tr>
+ 		<td>1</td>
+		<td><input type="checkbox"></td>
+ 		<td><a href="">1414366770</a></td>
+ 		<td>锦食送</td>
+ 		<td>订单类型</td>
+ 		<td>否</td>
+ 		<td>2014-06-03 11:58</td>
+ 		<td>2014-06-03 11:58</td>
+ 		<td>115.00</td>
+ 		<td><a href="">李锦帅(1)</a></td>
+ 		<td>13120321516</td>
+ 		<td>星科大厦A座4010</td>
+ 		<td>是</td>
+ 		<td>京味斋（五道口）</td>
+ 		<td>五道口</td>
+ 		<td>提交</td>
+ 		<td><a href="">确认</a></td>
+ 		<td><a href="">取消</a></td>
+ 		<td><a href="">关闭</a></td>
+ 	</tr>
+	 	<tr>
+ 		<td>1</td>
+		<td><input type="checkbox"></td>
+ 		<td><a href="">1414366770</a></td>
+ 		<td>锦食送</td>
+ 		<td>订单类型</td>
+ 		<td>否</td>
+ 		<td>2014-06-03 11:58</td>
+ 		<td>2014-06-03 11:58</td>
+ 		<td>115.00</td>
+ 		<td><a href="">李锦帅(1)</a></td>
+ 		<td>13120321516</td>
+ 		<td>星科大厦A座4010</td>
+ 		<td>是</td>
+ 		<td>京味斋（五道口）</td>
+ 		<td>五道口</td>
+ 		<td>提交</td>
+ 		<td><a href="">确认</a></td>
+ 		<td><a href="">取消</a></td>
+ 		<td><a href="">关闭</a></td>
+ 	</tr>
+ 	 	<tr>
+ 		<td>1</td>
+		<td><input type="checkbox"></td>
+ 		<td><a href="">1414366770</a></td>
+ 		<td>锦食送</td>
+ 		<td>订单类型</td>
+ 		<td>否</td>
+ 		<td>2014-06-03 11:58</td>
+ 		<td>2014-06-03 11:58</td>
+ 		<td>115.00</td>
+ 		<td><a href="">李锦帅(1)</a></td>
+ 		<td>13120321516</td>
+ 		<td>星科大厦A座4010</td>
+ 		<td>是</td>
+ 		<td>京味斋（五道口）</td>
+ 		<td>五道口</td>
+ 		<td>提交</td>
+ 		<td><a href="">确认</a></td>
+ 		<td><a href="">取消</a></td>
+ 		<td><a href="">关闭</a></td>
+ 	</tr>
+ </table>
+</div>
+<div style="">
+<input type="button" value="首页">
+<input type="button" value="上一页">
+<input type="button" value="下一页">
+【共1页】【当前第1页】【共38条记录】
+</div>
+</div>
+</body>
+</html>

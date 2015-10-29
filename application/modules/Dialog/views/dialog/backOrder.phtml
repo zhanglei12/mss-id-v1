@@ -1,0 +1,205 @@
+{include file="/data/web/crm.meishisong.mobi/application/views/header.phtml"}
+<script language="javascript">
+$(function() {
+	// date
+	$(".dates").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: "yy-mm-dd",
+        autoSize: true
+	});
+});
+</script>
+<div id="search">
+	<form name="searchFrom" class="searchFrom" action="" method="get">
+	<table class="inputstyle">
+		<tr>
+			<td width="20%">
+				<span>要求送达时间(起)</span>
+				<input type="text" value="{$request_times}" name="request_times" class="dates" />
+			</td>
+			<td width="20%">
+				<span>要求送达时间(止)</span>
+				<input type="text" value="{$request_timee}" name="request_timee" class="dates" />
+			</td>
+			<td width="20%">
+				<span>订单时间(起)</span>
+				<input type="text" value="{$add_times}" name="add_times" class="dates" />
+			</td>
+			<td width="20%">
+				<span>订单时间(止)</span>
+				<input type="text" value="{$add_timee}" name="add_timee" class="dates" />
+			</td>
+			<td width="20%">
+				<span>店铺名称</span>
+				<input type="text" name="seller_name" id="seller_name" value="{$seller_name}" />
+			</td>
+		</tr>
+		
+		<tr>
+			<td width="20%">
+				<span>订单编号(",")</span>
+				<input type="text" name="order_sn" id="order_sn" value="{$order_sn}" />
+			</td>
+			<td width="20%">
+				<span>收货人用户名</span>
+				<input type="text" name="consignee" id="consignee" value="{$consignee}" />
+			</td>
+			<td width="20%">
+				<span>收货人电话</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+			<td width="20%">
+				<span>快递员?</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+			<td width="20%">
+				<span>区域?</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" />
+			</td>
+		</tr>
+		
+		<tr align="center">
+			<td colspan="5">
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 " />
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<tr>
+			<td colspan="9">共23条数据</td>
+		</tr>
+		
+		<tr>
+			<th>发票ID</th>
+			<th>发票号</th>
+			<th>用户名</th>
+			<th>金额</th>
+			<th>类型</th>
+			<th>抬头</th>
+			<th>时间</th>
+			<th>状态</th>
+			<th>操作</th>
+		</tr>
+		
+		<!--{foreach from=$invoiceinfo item=info name=invoice}
+		<tr class="discolor">
+			<td align="center">{$info.id}</td>
+			<td align="center" id="invoiceNum{$info.id}">{$info.invnum}</td>
+			<td align="center">{$info.username}</td>
+			<td align="right">{$info.fee}</td>
+			<td align="center">{$info.invtype_to_text}</td>
+			<td align="center">{$info.invhead}</td>
+			<td align="center">{$info.addtime}</td>
+			<td align="center" id="invoiceStatus{$info.id}">{$info.status_to_text}</td>
+			<td>
+				<a href="#" onclick="openDialog(openUrl('invoiceinfo?opt=invoiceinfo_read&invid={$info.id}'), '700', '500', '查看发票', false);return false;">查看</a>
+				{if $info.status eq '1' AND $invoiceCheck eq '1'}
+				<span id="invoicing{$info.id}">
+				&nbsp;|&nbsp;<a href="#" onclick="openDialog(openUrl('invoiceinfo?opt=invoiceinfo_read&case=check&invid={$info.id}'), '700', '500', '开发票', false);return false;">开发票</a>
+				</span>
+				{/if}
+			</td>
+		</tr>
+		{/foreach}-->
+		
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		<tr class="discolor">
+			<td>发票ID</td>
+			<td>发票号</td>
+			<td>用户名</td>
+			<td>金额</td>
+			<td>类型</td>
+			<td>抬头</td>
+			<td>时间</td>
+			<td>状态</td>
+			<td>操作</td>
+		</tr>
+		
+		<tr>
+			<td colspan="9">共23条数据</td>
+		</tr>
+	</table>
+</div>
+{include file="/data/web/crm.meishisong.mobi/application/views/footer.phtml"}

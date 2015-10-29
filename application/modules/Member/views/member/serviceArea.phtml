@@ -1,0 +1,74 @@
+<html>
+<script>
+$(function(){
+		getServiceParentArea();
+	$("#parent_service_area").change(function(){
+		getServiceParentArea();
+	})
+	$('#service_area').change(function() {
+	}).multipleSelect({
+		width:130,
+		multipleWidth: 130
+	});
+})
+function setServiceArea(){
+	var areaArr = $("#service_area").multipleSelect("getSelects");
+	$.ajax({
+		type: "POST",
+		url: "/member/member/setServiceArea",
+		data: "areaArr="+areaArr,
+		dataType: "json",
+		success: function(data){
+			if(data == 1){
+				alert("设置成功");
+			}
+		},
+	})
+}
+function getServiceParentArea(resert) {
+	var parent_id = $("#parent_service_area").val();
+	var order_type = $("#order_type_region").val();
+	var area_id = $("#havearea").val();
+	var select_parent_area = $(".listDialog").find("#parent_area").val();
+	if(select_parent_area>=0){
+		parent_id = select_parent_area;
+	}
+	if(order_type == "orderdetail"){
+		area_id = $("#service_area").val();
+	}
+	if(resert == '0'){
+		parent_id = '0';
+	}
+	// if(if_check == '1'){
+	// 	order_type = "servicearea";
+	// }
+	$.ajax({
+		type: "POST",
+		url: "/custom/crmorder/ajaxGetArea",
+		data: "type=servicearea&parent_id="+parent_id+"&area_id="+area_id,
+		dataType: "html",
+		cache: false,
+		success: function(data, textStatus){
+			$("#service_area").empty();
+			if(order_type == "orderdetail"){
+				$("#service_area").append(data);
+				return false;
+			}
+			$("#service_area").append(data).multipleSelect("refresh");	
+		},
+	})
+}
+</script>
+<h4>请选择您的服务区域</h4>
+	<div style="margin-top:20px;margin-left:20px;">
+		<span>区域</span>
+		<select name="parent_service_area" id="parent_service_area" class="parent_service_area" style="height:20px">
+			{html_options options=$parent_service_areaList selected=$parent_service_area}
+		</select>
+		<input type="hidden" id="havearea" value="{$area}" />
+		<select name="service_area[]" id="service_area" class="service_area" multiple="multiple">
+			{html_options options=$service_areaList selected={$service_area}}
+		</select>
+		<input type="button" value="确认" id="setServiceArea" onclick="setServiceArea()"/>
+	</div>
+</html>

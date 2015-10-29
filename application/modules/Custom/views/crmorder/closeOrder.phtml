@@ -1,0 +1,86 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script>
+$(function() {
+	$(".listDialog input, .listDialog button").button();
+	
+	getBigSelect();
+	$('#bigSelect').change(function() {
+		getSmallSelect();
+	})
+});
+
+function closeOrderDB(order_id) {
+	var username = {$username};
+	bigVal = $("#bigSelect option:selected").val() == 0 ? '' : $("#bigSelect option:selected").val();
+	smallVal = $("#smallSelect option:selected").val() == 0 ? '' : $("#smallSelect option:selected").val();
+	remarkVal = $(".remark").val();
+	if(bigVal == 0) {
+		alert("请选择原因");
+		return false;
+	}
+	if(smallVal == 0 && $("#smallSelect option").length > 1) {
+		alert("请选择原因");
+		return false;
+	}
+	if(remarkVal.length < 6) {
+		alert("备注不能小于6个字");
+		return false;
+	}
+	remark = bigVal+smallVal+remarkVal;
+	$.ajax({
+		url: "/custom/crmorder/closeOrderDB",
+		type: "POST",
+		dataType: "text",
+		data: "order_id="+order_id+"&remark="+remark,
+		error: function(XMLHttpRequest){
+			alert("Error");
+		},
+		success: function(result){
+			// $("body").append("<div id='addBox'></div>");
+			if(result == 1){
+				socketUpdateOrder('{$username}', '{$empname}', order_id);
+				closeDialog();
+				// $("#"+order_id).remove();
+				// $("#addBox").html("关闭成功").show().delay(700).fadeOut(200);
+				saveLocalStorage(order_id,username);
+				alert("关闭成功");
+			}else if(result == -1){
+				// closeDialog();
+				// $("#addBox").html("取消失败").show().delay(2000).fadeOut(200);
+				alert("关闭失败");
+			}else if(result == -2){
+				alert("订单已修改");
+			}else if(result == 2){
+				alert("插入失败");
+			}else if(result == -10){
+				alert("请重新登陆");
+			}
+		}
+	});
+}
+</script>
+
+<div id="list" class="listDialog">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+		<tr>
+			<th width="80px">选择原因</th>
+			<td>
+				<select id="bigSelect" name="bigSelect"></select>
+				<select id="smallSelect" name="smallSelect"><option value="0">请选择原因</option></select>
+			</td>
+		</tr>
+		<tr>
+			<th>备注</th>
+			<td>
+				<textarea name="remark" class="remark" style="width:98%;height:120px;"></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" align="center">
+				<input name="confirm" type="button" value="确定" onclick="closeOrderDB({$order_id});" />
+				<input name="cancel" type="button" value="取消" onclick="closeDialog();" />
+			</td>
+		</tr>
+	</table>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}

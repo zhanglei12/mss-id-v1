@@ -1,0 +1,275 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/custom/order.js"></script>
+<script>
+$(function() {
+	getParentArea();
+	// nav background
+	$(".csAssignOrder").attr("id", "a");
+	$("#parent_area").change(function() {
+        getParentArea();
+	})
+	$('#area').change(function() {
+    }).multipleSelect({
+    	width: '178px'
+        });
+    $('#partner').change(function() {
+    }).multipleSelect({
+    	 width: '110px',
+    });
+    $('#orderStatus').change(function() {
+    }).multipleSelect({
+    	 width: '110px',
+    });
+   	//匹配时间格式
+   	$("#request_times").change(function() {
+    	var time = $(this).val();
+    	if(!checkTimeFormat(time)){
+    		alert("要求送达时间(起) 格式错误！");
+    	};
+	})
+	$("#request_timee").change(function() {
+    	var time = $(this).val();
+    	if(!checkTimeFormat(time)){
+    		alert("要求送达时间(止) 格式错误！");
+    	};
+	})
+    $("#add_times").change(function() {
+    	var time = $(this).val();
+    	if(!checkTimeFormat(time)){
+    		alert("订单时间(起) 格式错误！");
+    	};
+	})
+	$("#add_timee").change(function() {
+    	var time = $(this).val();
+    	if(!checkTimeFormat(time)){
+    		alert("订单时间(止) 格式错误！");
+    	};
+	})
+  	$("input[name=request_times]").removeAttr("readonly");
+  	$("input[name=request_timee]").removeAttr("readonly");
+  	$("input[name=add_times]").removeAttr("readonly");
+  	$("input[name=add_timee]").removeAttr("readonly");
+  	var time = '{$time}';
+  	$(".discolor").each(function(){
+  		var request = $(this).children(".request").attr("id");
+  		var diff = request - time;
+  		if(diff < 0){
+  			$(this).css("backgroundColor","#CD3333");
+  		}else if(diff < 600){
+  			$(this).css("backgroundColor","#CD3333");
+  		}else if(diff < 1200 && diff > 600){
+  			$(this).css("backgroundColor","yellow");
+  		}
+  	})
+});
+function checkAllTimeFormat() {
+	var request_times = $("#request_times").val();
+	var request_timee = $("#request_timee").val();
+	var add_times = $("#add_times").val();
+	var add_timee = $("#add_timee").val();
+	if(request_times.length != 0){
+		if(!checkTimeFormat(request_times)){
+			alert("要求送达时间(起) 格式错误！");
+			return false;
+		};
+	}
+	if(request_timee.length != 0){
+		if(!checkTimeFormat(request_timee)){
+			alert("要求送达时间(止) 格式错误！");
+			return false;
+		};
+	}
+	if(add_times.length != 0){
+		if(!checkTimeFormat(add_times)){
+			alert("订单时间(起) 格式错误！");
+			return false;
+		};
+	}
+	if(add_timee.length != 0){
+		if(!checkTimeFormat(add_timee)){
+			alert("订单时间(止) 格式错误！");
+			return false;
+    	};
+	}
+}
+</script>
+
+<div id="search">
+	<form name="searchFrom" class="searchFrom" action="" method="get" onsubmit="return checkAllTimeFormat();">
+	<table class="inputstyle">
+		<tr>
+			<td width="15%">
+				<span>要求送达时间(起)</span>
+				<input type="text" value="{$request_times}" name="request_times" class="datetime searchwidth" />
+			</td>
+			<td width="15%">
+				<span>要求送达时间(止)</span>
+				<input type="text" value="{$request_timee}" name="request_timee" class="datetime searchwidth" />
+			</td>
+			<td width="15%">
+				<span>订单时间(起)</span>
+				<input type="text" value="{$add_times}" name="add_times" class="datetime searchwidth" />
+			</td>
+			<td width="15%">
+				<span>订单时间(止)</span>
+				<input type="text" value="{$add_timee}" name="add_timee" class="datetime searchwidth" />
+			</td>
+			<td width="15%">
+				<span>快递员</span>
+				<input type="text" name="emp_name" id="emp_name" value="{$emp_name}" class="searchwidth" />
+			</td>
+			<td width="15%" class="partner-box">
+				<span>合作伙伴</span>
+				<!-- <input type="hidden" value="$selectpartner" id="searchpart" /> -->
+				<div class="form-group floatLeft">
+					<select name="partner[]" id="partner" class="" multiple="multiple">
+						<!-- {html_options options=$partnerList} -->
+						{$partnerList}
+					</select>
+				</div>
+			</td>
+			<td width="10%" class="status-box">
+				<span>状态</span>
+				<!-- <input type="text" name="emp_name" id="emp_name" value="{$emp_name}" class="searchwidth" /> -->
+				<div class="form-group floatLeft">
+					<select name="orderStatus[]" id="orderStatus" class="" multiple="multiple">
+						{$selectStatus}
+					</select>
+				</div>
+			</td>
+		</tr>
+		
+		<tr>
+			<td width="15%">
+				<span>订单编号</span>
+				<input type="text" name="order_sn" id="order_sn" value="{$order_sn}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>合作伙伴订单编号</span>
+				<input type="text" name="partner_order_id" id="partner_order_id" value="{$partner_order_id}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>收货人用户名</span>
+				<input type="text" name="consignee" id="consignee" value="{$consignee}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>收货人电话</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>餐厅名称</span>
+				<input type="text" name="seller_name" id="seller_name" value="{$seller_name}" class="searchwidth" />
+			</td>
+			<td width="55%" colspan="3">
+				<div class="floatLeft">
+					<span>城市 -> 区域</span>
+					<select name="parent_area" id="parent_area" class="parent_area">
+						{html_options options=$parent_areaList selected=$parent_area}
+					</select>
+				</div>
+				<div class="form-group floatLeft area-top">
+					<input type="hidden" id="havearea" value="{$area}" />
+					<select name="area[]" id="area" class="area" multiple="multiple">
+						{html_options options=$areaList selected={$area}}
+					</select>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="15%">
+				<span>支付方式</span>
+					<select name="payment_name" id="payment_name" class="payment_name" >
+						{html_options options=$payment_nameList selected={$payment_name}}
+					</select>
+			</td>
+			<td width="15%">
+				<span>配送类型</span>
+					<select name="csOrder" id="csOrder" class="csOrder neworder-search" >
+						{html_options options=$csOrder selected={$cs_order_type}}
+					</select>
+			</td>
+		</tr>		
+		<tr align="center" class="search">
+			<td colspan="7">
+				<input type="hidden" value="backorder" id="order_type_region" />
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 "onclick="getParentArea(0)"/>
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr class="total">
+			<td colspan="24" align="left">{$order_summary}</td>
+		</tr>
+		<tr>
+			<th>序号</th>
+			<th>订单编号</th>
+			<!-- <th>合作伙伴</th>
+			<th>订单类型</th>
+			<th>VIP</th> -->
+			<th>下单时间</th>
+			<th>要求送达时间</th>
+			<th>分配时间</th>
+			<th>配送方式</th>
+			<th>订单金额</th>
+			<th>客服</th>
+			<th>收货人</th>
+			<th>收货人电话</th>
+			<th>收货人所在建筑</th>
+			<th>收货地址</th>
+			<!-- <th>新用户</th> -->
+			<th>餐厅名称</th>
+			<th>餐厅电话</th>
+			<th>区域</th>
+			<th>餐厅所在建筑物</th>
+			<th>快递员</th>
+			<th>联系电话</th>
+			<th>当前位置</th>
+			<th>当前区域</th>
+			<th>目的地位置</th>
+			<th>配送类型</th>
+			<th>状态</th>
+			<th>操作</th>
+		</tr>
+		{section loop=$orderArr name=n}
+		<tr class="discolor">
+			<td align="center">{$smarty.section.n.index+1}</td>
+			<td><a href="/custom/crmorder/order?order_id={$orderArr[n].order_id}" target="_blank">{$orderArr[n].order_sn}</a></td>
+			<!-- <td>{$partner[$orderArr[n].from_partner]}</td>
+			<td>{$orderArr[n].order_type_str}</td>
+			<td align="center"> {if $orderArr[n].is_ordervip ==0} 否 {else} 是 {/if} </td> -->
+			<td>{$orderArr[n].add_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td class="request" id='{$orderArr[n].request_time}'>{$orderArr[n].request_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td>{$orderArr[n].assign_time|date_format:'%Y-%m-%d %H:%M'}</td>
+			<td>{$orderArr[n].shipping_name}</td>
+			<td align="right">{$orderArr[n].order_amount|string_format:"%.2f"}</td>
+			<td>{$orderArr[n].emp_no}</td>
+			<td><a href="#" onclick="consignee({$orderArr[n].buyer_id})">{$orderArr[n].consignee}</a></td>
+			<td>{$orderArr[n].phone_mob}</td>
+			<td>{$orderArr[n].cons_bdname}</td>
+			<td title="{$orderArr[n].address}">{$orderArr[n].address}</td>
+			<!-- <td align="center"> {if $orderArr[n].is_new == 0} 否 {else} 是 {/if} </td> -->
+			<td title="{$orderArr[n].seller_name}">{$orderArr[n].seller_name}</td>
+			<td>{$orderArr[n].tel}</td>
+			<td>{$orderArr[n].region_name}</td>
+			<td>{$orderArr[n].store_buildname}</td>
+			<td>{$orderArr[n].emp_name}</td>
+			<td>{$orderArr[n].emp_mobile}</td>
+			<td>{$orderArr[n].nearestbuilding_name}</td>
+			<td>{$orderArr[n].emp_regionname}</td>
+			<td>{$orderArr[n].nextnearestbuilding_name}</td>
+			<td>{$csOrder[$orderArr[n].cs_order_type]}</td>
+			<td>{$orderStatus[$orderArr[n].status]}</td>
+			<td><a href="#" onclick="selectCourier('',{$orderArr[n].order_id},{$orderArr[n].region_id})">改派</a></td>
+		</tr>
+		{/section}
+		<tr class="total">
+			<td colspan="24" align="left">{$order_summary}</td>
+		</tr>
+	</table>
+</div>
+{include file="$app_path/application/views/footer.phtml"}

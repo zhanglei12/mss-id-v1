@@ -1,0 +1,160 @@
+{include file="../header.phtml"}
+<style type='text/css'>
+	
+	.show_right
+	{
+		width:45%;
+		height:100%;
+		float:right;
+		text-align:right;
+	}
+	.member_show
+	{
+		width:100%;
+		height:4em;
+		border-top:1px solid grey;
+		border-bottom:1px solid grey;
+	}
+
+	.member_show_right
+	{
+		width:100%;
+		height:100%;
+		float:right;
+	}
+	.top
+	{
+		width:100%;
+		height:2em;
+	}
+	.bottom
+	{
+		width:100%;
+		height:2em;
+	}
+	.top_right
+	{
+		width:50%;
+		height:100%;
+		float:right;
+		text-align:right;
+	}
+	.bottom_right
+	{
+		width:30%;
+		height:100%;
+		float:right;
+		margin-right:0.5em;	
+	}
+	 .before_send
+	 {
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:99;
+			width:100%;
+			height:100%;
+			background-color:#EAEAEA;
+			opacity:0.8;
+			display: none;
+	 }
+	 .before_send_text
+	 {
+		position:fixed;
+		z-index:199;    
+		top:50%;
+		display: none;
+	 }
+</style>
+{if $error_result || $manager_error}
+<div class='go_back' style='width:100%;line-height:2em;background-color:#D7D7D7'>
+	获取您店长的权限失败，请联系管理员。
+</div>
+{else}
+<div class='go_back' style='width:100%;line-height:2em;background-color:#D7D7D7'>
+	<span><<列表管理</span>
+	<span class="show_right">申请<span id="user_checking">{$member_checking}</span>/店员{$member_total}</span>
+</div>
+<input type='hidden' name="openid" value="{$openid}">
+{foreach from=$data item=i}
+	{foreach from=$i.member_info item=j}
+		<div class="member_show">  <!--循环用户信息-->
+			<div class="member_show_right" value="{$j.user_check}">
+				<div class="top"><span>{$j.user_name}</span><span class="top_right">{$j.addtime|truncate:13:false}</span></div>
+				<div class="bottom"><span>{$i.store_name}</span><span class="bottom_right">
+				{if $j.user_check==1}
+					<input httr="{$j.user_id}" class="change" type="button" value="启用"></span>
+					{else}
+					<input httr="{$j.user_id}" class="change" type="button" value="禁用"></span>
+				{/if}
+				</div>
+			</div><!--右边的具体操作部分-->
+		</div>
+	{/foreach}
+{/foreach}
+{/if}
+	<div class="before_send show_hide"></div>
+	<div class="before_send_text show_hide" style='text-align:center;width:100%'>状态修改提交中，请稍后...</div>
+ </body>
+</html>
+<script type="text/javascript">
+var openid=$("input[name='openid']").attr("value");
+	$(function(){
+		$(".change").on("click",function(){
+			var check_value=$(this).attr("value");
+			var user_id=$(this).attr("httr");
+			var user_check="";
+			var $th=$(this);
+			if(check_value=="启用"){
+				user_check=2;
+			}else{
+				user_check=1;
+			}
+			$.ajax({
+				type:"post",
+				dataType:"json",
+				url:"change",
+				data:"user_id="+user_id+"&user_check="+user_check+"&openId="+openid,
+				beforeSend:function(){
+					$(".show_hide").show();
+				},
+				success:function(result){
+					if(result.state==1){
+						if(check_value=="启用"){
+							$th.attr("value","禁用");
+							//审核中的人数减一
+							var num=parseInt($("#user_checking").html());
+							num-=1;
+							$("#user_checking").html(num);
+							$th.parent().parent().parent().css("color","black");
+						}else{
+							$th.attr("value","启用");
+							//审核中的人数加一
+							var num=parseInt($("#user_checking").html());
+							num+=1;
+							$("#user_checking").html(num);
+							$th.parent().parent().parent().css("color","#EE9A00");
+						}
+					}else{
+						alert("修改状态失败！");
+					}
+				},
+				complete:function(){
+					$(".show_hide").hide();
+				},
+			
+			})
+		});
+		
+		$(".member_show_right").each(function(){
+			var val=$(this).attr("value");
+			if(val=="1"){
+				$(this).css("color","#EE9A00");
+			}
+		
+		})
+	})
+</script>
+
+
+

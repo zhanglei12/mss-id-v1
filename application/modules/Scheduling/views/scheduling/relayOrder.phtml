@@ -1,0 +1,368 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/scheduling.js"></script>
+<script type="text/javascript">
+$(function() {
+		$('td#searchstore').find('.ms-search').attr("id", "st_search");
+	// nav background
+	$(".relayorder").attr("id", "a");
+
+	getParentArea();
+	$("#parent_area").change(function() {
+        getParentArea();
+        $("#ms-select-all").attr("checked","checked");
+	})
+	$('#area').change(function() {
+    }).multipleSelect({
+        });
+    $('#partner').change(function() {
+    }).multipleSelect({
+    	width: '200px'
+    });
+    $('#store_name').change(function() {
+    }).multipleSelect({
+    	width: '200px',
+    	filter: true,
+    	multipleWidth: '180px',
+    });
+
+    // $('table').off('keydown').on('keydown','tr td #search_store',function (e) {
+    //     if (e.keyCode === 9 && e.shiftKey) {
+    //     	//$('.ms-no-results').hide();
+    //         var store_name = $(this).val();
+    //             searchstore(store_name);
+    //             return;
+    //     }
+    //     }).off('keyup').on('keyup','tr td #search_store', function (e) {
+    //             if ((e.which === 13 || e.which == 32) && $(this).val()) {
+    //             	//$('.ms-no-results').hide();
+    //                 var store_name = $(this).val();
+    //                 searchstore(store_name);
+    //                 return;
+    //             }
+    //             $(this).filter();
+    //         });
+	
+});
+function searchstore(store_name){
+	var store_id = $('#store_name').multipleSelect('getSelects');
+	var select_name = $('#store_name').multipleSelect('getSelects', 'text');
+		$.ajax({
+			url: "/Scheduling/Scheduling/searchstore",
+			type: "POST",
+			dataType: "html",
+			data:"store_name="+store_name+"&store_id="+store_id+"&select_name="+select_name,
+			success: function(data){
+				$("#store_name").empty();
+				$("#store_name").append(data).multipleSelect("refresh");
+				$("#search_store").val(store_name);
+			}
+		})
+}
+
+socket = io.connect('{$WEB_SOCKET_IP}:{$WEB_SOCKET_PORT}');
+// socket 信息实时推送至前端
+socket.on('untreated order', function (data){
+	if($("#socket_switch").val() != 1) {
+		return false;
+	}
+	var mysqldata = data.hello;
+	var orderIdArr = data.orderIdArr;
+	var nowUnix = getNowUnix(); // 当前时间戳
+	// console.log(orderIdArr);
+	// 最大接力数
+	var maxRelay = 0;
+	var relayLen = 0;
+	for(var orderId in orderIdArr) {
+		relayLen = getLength(orderIdArr[orderId]);
+		if(relayLen > maxRelay) {
+			maxRelay = relayLen;
+		}
+	}
+	// 根据最大接力数写入表头
+	$(".relayNum").remove();
+	for(var i=maxRelay; i>=1; i--) {
+		$("#relayNum").after(
+			'<th class="relayNum">接力 '+i+'</th>'
+		);
+	}
+	
+	var i = 0;
+	$(".discolor").remove();
+	var partner = {$json_partner};
+	var orderstatus = {$json_orderStatus};
+	var order = {$json_statusArr};
+	var status = ["否", "是"];
+	for(var mysqlkey in mysqldata) {
+		i++;
+		var j = 0;
+		var addtime = getLocalTime(mysqldata[mysqlkey]['add_time']);
+		var request = getLocalTime(mysqldata[mysqlkey]['request_time']);
+		var assign_time = '';
+		mysqldata[mysqlkey]['emp_name'] = mysqldata[mysqlkey]['emp_name'] ? mysqldata[mysqlkey]['emp_name'] : '';
+		
+		var relayHtml = '';
+		for(var orderId in orderIdArr) {
+			if(orderId == mysqldata[mysqlkey]['order_id']) {
+				for(var key in orderIdArr[orderId]) {
+					j++;
+					if(orderIdArr[orderId][key]['emp_id']) {
+						var emp_name = orderIdArr[orderId][key]['emp_name'];
+					} else {
+						var emp_name = '配送员';
+					}
+					
+					// var progress = 0; // 物流进度
+					// var reception_time = orderIdArr[orderId][key]['reception_time']; // 接收时间
+					// var expected_delivery_time = orderIdArr[orderId][key]['expected_delivery_time']; // 预计送达时间
+					// switch (orderIdArr[orderId][key]['status']) {
+						// case 0:
+							// progress = 20;
+							// break;
+						// case 1:
+							// if(reception_time < nowUnix && nowUnix < expected_delivery_time) {
+								// var rate = accDiv((nowUnix - reception_time), (expected_delivery_time - reception_time));
+								// if(rate >= 0.8) {
+									// progress = 80;
+								// } else {
+									// progress = 50;
+								// }
+							// } else if(nowUnix >= expected_delivery_time) {
+								// progress = 80;
+							// } else {
+								// progress = 50;
+							// }
+							// break;
+						// case 2:
+							// progress = 100;
+							// break;
+					// }
+					var progress = lgsProgress(orderIdArr[orderId][key]['status'], orderIdArr[orderId][key]['reception_time'], orderIdArr[orderId][key]['expected_delivery_time']);
+					
+					relayHtml += '<td>'+orderIdArr[orderId][key]['region_name']+', <a href="#" class="'+orderIdArr[orderId][key]['order_id']+key+'" onclick="selectCourier('+orderIdArr[orderId][key]['lgs_id']+', '+orderIdArr[orderId][key]['order_id']+','+orderIdArr[orderId][key]['region_id']+')">'+emp_name+'</a>, '+progress+'%</td>';
+				}
+			}
+		}
+		var relayNum = maxRelay - j;
+		for (var key=0; key<relayNum; key++) {
+			relayHtml += '<td></td>';
+		}
+		
+		$("#order_tr").before(
+			'<tr class="discolor" id="'+mysqldata[mysqlkey]['order_id']+'">\
+				<td class="luckShow" width="28px"><input type="checkbox" name="items"></td>\
+				<td class="luckHide luckIcon"></td>\
+				<td align="center">'+i+'</td>\
+				<td name="order_sn" class="luckShow"><a href="/custom/crmorder/order?order_id='+mysqldata[mysqlkey]['order_id']+'" target="_Blank">'+mysqldata[mysqlkey]['order_sn']+'</a></td>\
+				<td class="luckHide">'+mysqldata[mysqlkey]['order_sn']+'</td>\
+				<td name="partner_name">'+partner[mysqldata[mysqlkey]['from_partner']]+'</td>\
+				<td>'+request+'</td>\
+				<td name="seller_name" title="'+mysqldata[mysqlkey]['seller_name']+'">'+mysqldata[mysqlkey]['seller_name']+'</td>\
+				<td>'+mysqldata[mysqlkey]['region_name_store']+'</td>\
+				<td name="region_name">'+mysqldata[mysqlkey]['region_name']+'</td>\
+				<td name="consignee"><a href="#" onclick="consignee('+mysqldata[mysqlkey]['buyer_id']+')">'+mysqldata[mysqlkey]['consignee']+'</a></td>\
+				<td name="phone_mob">'+mysqldata[mysqlkey]['phone_mob']+'</td>\
+				<td title="'+mysqldata[mysqlkey]['address']+'">'+mysqldata[mysqlkey]['address']+'</td>\
+				<td class="luckShow operate"><a href="#" onclick="updateOrder('+mysqldata[mysqlkey]['order_id']+', 23)">退回</a> | <a href="#" onclick="selectArea('+mysqldata[mysqlkey]['order_id']+')">区域路线</a></td>\
+				<td class="luckHide luckNote"></td>\
+				'+relayHtml+'\
+			</tr>'
+		);
+		$("#order_tr td").html("共"+i+"条数据");
+	}
+	if(i == 0) {
+		$("#order_tr td").html("共0条数据");
+	}
+	$(".luckHide").hide();
+	discolor();
+	discolorHover();
+});
+			/*'<tr class="discolor" id="'+mysqldata[mysqlkey]['order_id']+'">\
+				<td class="luckShow" width="28px"><input type="checkbox" name="items"></td>\
+				<td class="luckHide luckIcon"></td>\
+				<td align="center">'+i+'</td>\
+				<td name="order_sn" class="luckShow"><a href="/custom/crmorder/order?order_id='+mysqldata[mysqlkey]['order_id']+'" target="_Blank">'+mysqldata[mysqlkey]['order_sn']+'</a></td>\
+				<td class="luckHide">'+mysqldata[mysqlkey]['order_sn']+'</td>\
+				<td>'+mysqldata[mysqlkey]['partner_order_id']+'</td>\
+				<td name="partner_name">'+partner[mysqldata[mysqlkey]['from_partner']]+'</td>\
+				<td>'+order[mysqldata[mysqlkey]['order_type']]+'</td>\
+				<td>'+addtime+'</td>\
+				<td>'+request+'</td>\
+				<td class="luckShow"><a href="#" onclick="updateOrder('+mysqldata[mysqlkey]['order_id']+', 23)">退回</a> | <a href="#" onclick="selectArea('+mysqldata[mysqlkey]['order_id']+', '+mysqldata[mysqlkey]['region_id']+')">区域路线</a></td>\
+				<td class="luckHide luckNote"></td>\
+				<td align="right">'+mysqldata[mysqlkey]['order_amount'].toFixed(2)+'</td>\
+				<td align="right">'+status[mysqldata[mysqlkey]['res_confirm']]+'</td>\
+				<td name="consignee"><a href="#" onclick="consignee('+mysqldata[mysqlkey]['buyer_id']+')">'+mysqldata[mysqlkey]['consignee']+'</a></td>\
+				<td name="phone_mob">'+mysqldata[mysqlkey]['phone_mob']+'</td>\
+				<td title="'+mysqldata[mysqlkey]['address']+'">'+mysqldata[mysqlkey]['address']+'</td>\
+				<td name="seller_name" title="'+mysqldata[mysqlkey]['seller_name']+'">'+mysqldata[mysqlkey]['seller_name']+'</td>\
+				<td name="region_name">'+mysqldata[mysqlkey]['region_name']+'</td>\
+				<td>'+orderstatus[mysqldata[mysqlkey]['status']]+'</td>\
+				<td>'+mysqldata[mysqlkey]['emp_name']+'</td>\
+				<td>联系电话</td>\ 
+				</tr>'*/
+
+// 显示全部新订单
+function showAll() {
+	searchFormRest()
+	$("#socket_switch").val("1");
+	$(".discolor").show();
+	$("#order_tr td").html("共"+$(".discolor:visible").length+"条数据");
+	$("#searchFrom").reset();
+}
+
+// jquery搜索
+function jquerySearch() {
+	// var seller_name_S	= $.trim($("#seller_name").val());
+	var order_sn_S		= $.trim($("#order_sn").val());
+	var consignee_S 	= $.trim($("#consignee").val());
+	var phone_mob_S 	= $.trim($("#phone_mob").val());
+	var areaArr		= $("#area").multipleSelect("getSelects", "text");
+	var partnerArr	= $("#partner").multipleSelect("getSelects", "text");
+	var storeArr	= $("#store_name").multipleSelect("getSelects", "text");
+	$(".discolor").each(function() {
+		$(this).show();
+		order_sn_V	= $(this).children("td[name='order_sn']").text();
+		consignee_V = $(this).children("td[name='consignee']").text();
+		phone_mob_V = $(this).children("td[name='phone_mob']").text();
+		area_V 		= $(this).children("td[name='region_name']").text();
+		partner_V 	= $(this).children("td[name='partner_name']").text();
+		store_V 	= $(this).children("td[name='seller_name']").text();
+		
+		if(order_sn_S != "" && order_sn_S != order_sn_V){
+			$(this).hide();
+		}
+		if(consignee_S != "" && consignee_V.indexOf(consignee_S) < 0){
+			$(this).hide();
+		}
+		if(phone_mob_S != "" && phone_mob_V.indexOf(phone_mob_S) < 0){
+			$(this).hide();
+		}
+
+		if(areaArr.length > 0){
+			if(checkValInArr(areaArr,area_V)){
+				$(this).hide();
+			}
+		}
+		if(partnerArr.length > 0){
+			if(checkValInArr(partnerArr,partner_V)){
+				$(this).hide();
+			}
+		}
+		if(storeArr.length > 0){
+			if(checkValInArr(storeArr,store_V)){
+				$(this).hide();
+			}
+		}
+	})
+	$("#order_tr td").html("共"+$(".discolor:visible").length+"条数据");
+	if(order_sn_S == "" && consignee_S == "" && phone_mob_S == "" && $("#area").val() == 0) {
+		$("#socket_switch").val("1");
+	} else {
+		$("#socket_switch").val("0");
+	}
+}
+</script>
+
+<div id="search">
+	<form name="searchFrom" class="searchFrom" id="searchFrom" action="" method="get" onsubmit="jquerySearch();return false;">
+	<table class="inputstyle">
+		<tr>
+			<td width="15%">
+				<span>订单编号</span>
+				<input type="text" name="order_sn" id="order_sn" value="{$order_sn}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>收货人用户名</span>
+				<input type="text" name="consignee" id="consignee" value="{$consignee}" class="searchwidth" />
+			</td>
+			<td width="15%">
+				<span>收货人电话</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" class="searchwidth" />
+			</td>
+			<td width="25%" id="searchstore" colspan="2">
+				<!-- <input type="text" name="seller_name" id="seller_name" value="{$seller_name}" class="searchwidth" /> -->
+				<span>
+					餐厅名称				
+					<label>
+						<input type="checkbox" name="selectAll" value="selectAll" />
+						显示全部未完成订单
+					</label>
+				</span>
+				<select name="store_name" id="store_name" class="">
+						{html_options options=$storeinfo}
+				</select>
+			</td>
+			<td width="30%" id="searchpartner">
+				<span>合作伙伴</span>
+				<div class="form-group floatLeft">
+					<select name="partner[]" id="partner" class="area" multiple="multiple">
+						{html_options options=$partnerList}
+					</select>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="45%" colspan="3">
+				<div class="floatLeft">
+					<span>城市 -> 区域</span>
+					<select name="parent_area" id="parent_area" class="">
+						{html_options options=$parent_areaList selected=$parent_area}
+					</select>
+				</div>
+				<div class="form-group floatLeft area-top">
+					<input type="hidden" id="havearea" value="{$area}" />
+					<select name="area[]" id="area" class="area" multiple="multiple">
+						{html_options options=$areaList selected={$area}}
+					</select>
+				</div>
+			</td>
+		</tr>
+		<tr align="center" class="search">
+			<td colspan="7">
+				<input type="hidden" value="neworder" id="order_type_region" />
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 " onclick="searchFormRest()"/>
+				<input type="reset" value="显示全部新订单" onclick="showAll();return false;" />
+				<input type="hidden" id="socket_switch" value="1" />
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr>
+			<th width="28px"><input type="checkbox" /></th>
+			<th>序号</th>
+			<th>订单编号</th>
+			<!-- <th>客户订单编号</th>  -->
+			<th>合作伙伴</th>
+			<!-- <th>订单类型</th>
+			<th>下单时间</th> -->
+			<th>要求送达时间</th>
+			<!-- <th>订单金额</th>
+			<th>餐厅确认</th> -->
+			<th>餐厅名称</th>
+			<th>始发区</th>
+			<th>目的区</th>
+			<th>收货人</th>
+			<th>收货人电话</th>
+			<th>收货地址</th>
+			<!-- <th>状态</th>
+			<th>快递员</th>
+			<th>联系电话</th> -->
+			<th id="relayNum">操作</th>
+		</tr>
+		<tr id="order_tr">
+			<td colspan="19">加载中...</td>
+		</tr>
+	</table>
+</div>
+<script>
+$(function(){
+	$('td#searchstore').find('.ms-search').attr("id", "st_search");
+	
+})
+</script>
+{include file="$app_path/application/views/footer.phtml"}

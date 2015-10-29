@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		{literal}
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<title>美食送地图工具【百度】</title>
+		<link rel="stylesheet" href="/public/css/jquery-ui-1.11.0.css" />
+		<style>
+			body,html{width: 100%;height: 100%;overflow: hidden;margin:0;}
+			table {padding-top:0 0 0 0;width:100%;height:auto;border-spacing:0;}
+			#mss_all{width: 100%;height: 99%;margin: 4px 4px 4px 4px;}
+			#mss_query{width: 20%;height: 100%;float: left;font-size: 12px;}
+			#mss_map{width: 78%;height: 100%;float: left;margin-left: 4px;}
+			.ui-tabs .ui-tabs-panel {padding: 1em 0.8em;}
+			.ui-widget {font-family:Verdana,Arial,sans-serif;font-size:12px;}
+			 .ui-autocomplete-loading {background: white url("/public/img/ui-anim_basic_16x16.gif") right center no-repeat;}
+		</style>
+		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=WYuukb3i3l2BTKWhwqV5jnkm"></script>
+		<script src="/public/js/jquery-1.10.2.min.js"></script>
+		<script src="/public/js/jquery-ui-1.11.0.min.js"></script>
+		<script type="text/javascript" src="/application/modules/Tools/js/mapbd.js"></script>
+		<script type="text/javascript">
+			$(document).keypress(function(event)
+			{
+				
+			});
+			$(document).ready(function()
+			{
+				initPage();
+			});
+		</script>
+		{/literal}
+	</head>
+	<body>
+		<div id="mss_all">
+			<div id="mss_query">
+				<div id="div_query_type">
+					<ul>
+						<li><a href="#div_query_type_store">店铺查询</a></li>
+						<li><a href="#div_query_type_order">订单查询</a></li>
+						<li><a href="#div_query_type_route">路线查询</a></li>
+					</ul>
+					<div id="div_query_type_store">
+						<div id="div_store_query_free">
+							<table>
+								<tr>
+									<td width="30%">店铺名称：</td>
+									<td><input id="store_name" type="text" placeholder="请输入一个店铺名称" style="width:100%;border:1px solid silver;" autocomplete="off" /></td>
+								</tr>
+								<tr>
+									<td width="30%">店铺坐标：</td>
+									<td><input id="store_coord" type="text" placeholder="经度,纬度" style="width:100%;border:1px solid silver;" /></td>
+								</tr>
+								<tr>
+									<td valign="top">商圈坐标：</td>
+									<td><textarea id="store_bc_coord" placeholder="经度,纬度;经度,纬度……" style="width:100%;height:100px;border:1px solid silver;"></textarea></td>
+								</tr>
+								<tr>
+									<td colspan="2" align="center"><input id="button_store_query_free" type="button" value="查询" style="margin-top:4px;" onclick="queryStoreByFree()" /></td>
+								</tr>
+							</table>
+						</div>
+						<hr style="height: 1px;border: none; border-top: 1px solid silver;" />
+						<!--<div id="div_store_query_name">
+							<table>
+								<tr>
+									<td width="30%">店铺名称：</td>
+									<td><input id="store_name" type="text" placeholder="请输入一个店铺名称" style="width:100%;border:1px solid silver;" autocomplete="off" /></td>
+								</tr>
+								<tr>
+									<tr>
+									<td width="30%">店铺坐标：</td>
+									<td><label id="label_store_coord"></label></td>
+								</tr>
+								<tr>
+									<td valign="top">商圈坐标：</td>
+									<td><label id="label_bc_coord"></label></td>
+								</tr>
+								<tr>
+									<td colspan="2" align="center"><input id="button_store_query_name" type="button" value="查询" style="margin-top:4px;" onclick="queryStoreByFree()" /></td>
+								</tr>
+							</table>
+						</div>-->
+					</div>
+					<div id="div_query_type_order">
+						tab2
+					</div>
+					<div id="div_query_type_route">
+						tab3
+					</div>
+				</div>
+			</div>
+			<div id="mss_map"></div>
+		</div>
+	</body>
+</html>

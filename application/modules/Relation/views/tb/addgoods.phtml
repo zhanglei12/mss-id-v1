@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>淘宝上传菜品</title>
+</head>
+	<body>
+	<div id='show' style="display:block;position:fixed; top:0; left:0; width:100%; height:100%; filter: alpha(opacity=70); opacity:1; background:none">
+		<div style=" text-align:center">格式：淘宝shopid=goods_id,goods_id&淘宝shopid=goods_id,goods_id<br>
+					<form name="form" method="post" action="addGoodsByIds">
+					<textarea name="goods" style="width:50%; height:40%">{$goods}</textarea>
+					<input type="submit" value="提交" id='sub'/>
+					</form>
+         </div>
+         <div style=" color:red; text-align:center">{$message}</div>
+         </div>
+	</body>
+</html>
+<script src="/public/js/jquery-1.10.2.min.js"></script>
+<script>
+$('#sub').click(function(){
+	$('#show').css('display','none');
+	});
+</script>

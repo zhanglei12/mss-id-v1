@@ -1,0 +1,926 @@
+{include file="../header.phtml"}
+<script type="text/javascript" src="/public/js/jquery.cookie.js"></script>
+<script type="text/javascript" src="/public/js/jquery.timer.js"></script>
+<style type="text/css">
+	body
+	{
+		font-family:"微软雅黑，宋体，隶体";
+	}
+	span
+	{
+		display:inline-block;
+	}
+	.you
+	{
+		width:30%;
+		float:right;
+		text-align:right;
+	}
+	.detail
+	{
+		clear:both;
+		width:100%;
+		height:1.5em;
+		padding:0.5em;
+	}
+	
+	.bottom
+	{
+		width:100%;
+		height:2em;
+		line-height:2em;
+		color:rgb(159,159,159);
+		border-top:1px solid grey;
+		position:fixed;
+		bottom:0;
+		background:white;
+	}
+	.bottom span
+	{
+		width:32%;
+		height:2em;
+		text-align:center;
+		border-right:1px solid grey;
+	}	
+	.change_show
+	{
+		color:#CD5555;
+	}
+	.reason
+	{
+		width:100%;
+		height:4.7em;
+		clear:both;
+		color:rgb(159,159,159);
+		display:none;
+		position:fixed;
+		bottom:2.1em;
+		background:white;
+	}
+	.left
+	{
+		width:64%;
+		height:1.5em;
+		float:left;
+	}
+	.right
+	{
+		width:35%;
+		height:1.5em;
+		float:right;
+		border:1px solid grey;
+	}
+	.before_send
+	 {
+			position:fixed;
+			top:0;
+			left:0;
+			z-index:99;
+			width:100%;
+			height:100%;
+			background-color:#EAEAEA;
+			opacity:0.8;
+			display: none;
+	 }
+	 .before_send_text
+	 {
+		position:fixed;
+		z-index:199;    
+		top:50%;
+		display: none;
+	 }
+
+</style>
+<div class='go_back' style='width:100%;line-height:2em;background-color:#D7D7D7'>&nbsp;&nbsp;<span><<订单详情</span><span class="you">未处理:<span style='color:red' id="count"></span>>></span></div>
+{if $result}
+	<div>获取订单详情异常。</div>
+	{else}
+	  <div id="one_order_show">
+		<input type="hidden" name='order' value="{$order_info.order_id}">
+		<input type="hidden" name='store' value="{$order_info.store_id}">
+		<input type="hidden" name='openid' value="{$openid}">
+		<div class="detail">姓名:<span id="name">{$order_info.consignee}</div>
+		<div class="detail">电话:<span id="tel" style='color:blue'>{$order_info.tel}</span></div>
+		<div class="detail" style='height:auto'>地址:<span id="address" style='display:inline'>{$order_info.address}</span>
+		<input type='hidden' name='yes_no' value="{$order_info.dizhi_status}">
+			{if $order_info.dizhi_status=="true"}
+				</div>
+				<div><span style='color:white'>地址:</span><span style="color:red">(在美食送的配送范围内)</span></div>
+			{else}
+		</div>
+		<div><span style="color:red;display:inline'">&nbsp;&nbsp;(超区,请于配送方联系,010-52285085)</span>
+		</div>
+			{/if}
+		
+		<div class="detail">送达时间:<span id="require_time">{$order_info.require_time}</span></div>
+		{if $order_info.status != 'untreated' && $order_info.to_delivery=='mess'}
+			<div class="detail">趣活配送状态:
+			{if $order_info.delivery_status=='receive'}
+				<span>已接收</span>
+			{else if $order_info.delivery_status=='refuse'}
+				<span>已拒绝</span>
+			{else}
+				<span>已完成</span>
+			{/if}
+		    </div>
+		{/if}
+		<div class="detail">发票抬头:<span id="receipt">{$order_info.receipt}</span></div>
+		<div class="detail">菜单列表:</div>
+		{foreach from=$order_info.goodsinfo item=goods}
+			<div style='height:auto' class="detail" id="detail_{$goods.goods_id}">
+				<!--原先订单的菜品数量-->
+				<input type='hidden' name="quantity_reset_{$goods.goods_id}" value="{$goods.quantity}">
+				<span style='width:30%' id="name_{$goods.goods_id}">{$goods.goods_name}</span>
+				<span style='width:17%' id="price_{$goods.goods_id}">{$goods.price}</span>
+				<span style='width:17%' id="quan_{$goods.goods_id}">x{$goods.quantity}</span>
+				{if $order_info.status=="untreated"}
+				<span style='width:26%' class="{$goods.goods_id}"><input type='button' value="+" class='quan_add'><input type='button' value="-" class='quan_red'></span>
+				{/if}
+				<input type="hidden" name='packing_{$goods.goods_id}' value="{$goods.packing}">
+			</div>
+		{/foreach}
+		{if $order_info.status=="untreated"}
+			<div class="detail"><a href="javascript:" class="goods_edit" >编辑菜品</a></div>
+		{/if}
+		<div class="detail" style='height:auto'>备注:{$order_info.remark}</div>
+		<div class="detail">消费:餐饮<span id="goods_amount">{$order_info.goods_amount}</span>+包装<span id="packing_fee">{$order_info.packing_fee}</span>+配送<span id="shipping_fee">{$order_info.shipping_fee}</span>=
+		{if $order_info.status=="untreated"}
+			<span id="order_amount">{$order_info.order_amount}</span>
+		{else}
+			<span id="order_amount">{$order_info.now_order_amount}</span>
+		{/if}
+		</div>
+	 </div>  <!--one_order_show的结束部分-->
+		<div class="change_show"><span class="change_order_total"></span></div>
+		<div class="nau"></div>
+		<div class="nau"></div>
+		<div class="nau"></div>
+		<div class="reason">
+			<span class="left"></span><span class="right">协商一致</span>
+			<span class="left"></span><span class="right">超范围</span>
+			<span class="left"></span><span class="right">已售空</span>
+		</div>
+		<div style='width:100%;height:0.5em'></div>
+		{if $order_info.status=="untreated"}
+			<div class="bottom">
+				<span style='float:left' class="mss">趣活快送</span>
+				<span style='float:left' class="own">自送</span>
+				<span style='float:right' class="order_reject">拒绝订单</span>
+			</div>
+		{/if}
+{/if}
+	<input type="hidden" name="num" value="1">
+	<div class="before_send show_hide"></div>
+	<div class="before_send_text show_hide" style='text-align:center;width:100%'>数据加载中，请稍后...</div>
+	<div class="new_order_tips before_send"></div>
+	<div class="new_order_tips before_send_text" style='text-align:center;width:100%'>订单处理成功，正在加载下一条订单，请稍后...</div>
+</body>
+</html>
+{literal}
+<script type="text/javascript">
+//计算价格 加
+	function add(num1,num2){
+		 var r1 = 0, r2 = 0, m;
+            try {
+                r1 = num1.toString().split('.')[1].length;
+            } catch (e) { }
+            try {
+                r2 = num2.toString().split('.')[1].length;
+            } catch (e) { }
+            m = Math.pow(10, Math.max(r1, r2));
+            return ((num1 * m + num2 * m) / m).toFixed(2);
+	}
+//计算价格 减	
+	function red(num1, num2){
+		var r1 = 0, r2 = 0, m, n;
+		try {
+			r1 = num1.toString().split('.')[1].length;
+		} catch (e) { }
+		try {
+			r2 = num2.toString().split('.')[1].length;
+		} catch (e) { }
+		m = Math.pow(10, Math.max(r1, r2));
+		n = (r1 >= r2) ? r1 : r2;
+		return ((num1 * m - num2 * m) / m).toFixed(2);
+    }
+//计算价格 除	
+	function division(num1, num2) { 
+		 var t1 = 0, t2 = 0, r1, r2;
+            try {
+                t1 = num1.toString().split('.')[1].length;
+            }
+            catch (e) { }
+            try {
+                t2 = num2.toString().split('.')[1].length;
+            }
+            catch (e) { }
+            with (Math) {
+                r1 = Number(num1.toString().replace('.', ''));
+                r2 = Number(num2.toString().replace('.', ''));
+                return (r1 / r2) * pow(10, t2 - t1);
+            }
+     }
+//计算价格 乘
+	 function multiplication(num1,num2){
+		var m = 0, s1 = num1.toString(), s2 = num2.toString();
+            try {
+                m += s1.split('.')[1].length;
+            } catch (e) { }
+            try {
+                m += s2.split('.')[1].length;
+            } catch (e) { }
+        return Number(s1.replace('.', '')) * Number(s2.replace('.', '')) / Math.pow(10, m);
+	 
+	}
+	
+	//取消订单
+	function order_del(order_id,reason)
+	{
+		if(!order_id || !reason){
+			alert("获取取消信息失败！");
+		}else{
+			$.ajax({
+				type:"post",
+				dataType:"json",
+				url:"orderdel",
+				data:{"order_id":order_id,"reason":reason,"openId":openid},
+				beforeSend:function(){
+					$(".show_hide").show();
+				},
+				success:function(result){
+					alert(result);
+					if(result.state=="1"){
+						$(".reason").hide();
+						clickmiss();
+					}else{
+						alert("取消订单失败");
+						return false;
+					}
+				},
+				complete:function(){
+					$(".show_hide").hide();	
+				},
+			
+			})
+		}
+	
+	}
+	
+	//对初始时的数量和现在的数量做加减法，写入数据
+	function total_change(goods_id,goods_name,price,quantity_reset,quantity,packing,tmp_goods_id)
+	{
+	  var quan=quantity-quantity_reset;
+	   
+	  changeOrderJson(goods_id,goods_name,price,quan,quantity_reset,packing,tmp_goods_id);
+	  
+	  //写入cookie后进行计算和展示
+	
+	  change_show();
+	
+	}
+	
+	function change_show()
+	{
+
+		var order_change_list = $.cookie('shopping_cart_list'+order_id);
+		if((order_change_list == undefined) || (order_change_list == null)){
+				return;
+			}else{
+				var total=0;	//总共的价格变化
+				var html="";
+				if(order_change_list.buy==null){
+					return;
+				}else{
+					var add_quantity=0;
+					var red_quantity=0;
+					$.each(order_change_list.buy,function(k,v){
+						if(v.q>=0){
+							var price_packing_total=(v.p*1+v.k*1)*(v.q*1);
+							add_quantity=parseInt(add_quantity)+1;
+							total=add(price_packing_total,total);
+						}else{
+							var price_packing_total=(v.p*1+v.k*1)*(v.q*1);
+							red_quantity=parseInt(red_quantity)+1;
+							total=add(price_packing_total,total);
+						}
+					});
+		
+					if(add_quantity>0){
+						html+="增加了"+add_quantity+"道菜,";
+					}
+					if(red_quantity>0){
+						html+="减少了"+red_quantity+"道菜,";
+					}
+					
+					if(total>0){
+						var total_html="补收"+total+"元";
+						html+=total_html;
+					}else if(total<0){
+						var total_html="退"+(-total)+"元";
+						html+=total_html;
+					}else{
+						html+="";
+					}
+					$(".change_show").html(html);
+				}
+		}
+
+
+	}
+	
+//写入到cookie的菜品数量的变化
+function changeOrderJson(goods_id,goods_name,price,quan,quantity_reset,packing,tmp_goods_id)
+{	
+	var goods={"i":goods_id,"n":goods_name,"p":price,"q":quan,"r":quantity_reset,"k":packing,"t":tmp_goods_id};
+
+	if($.type($.cookie('shopping_cart_list'+order_id))=="undefined"||$.type($.cookie('shopping_cart_list'+order_id))=='null'){
+		var shopping_cart_list = {'buy':[]};
+		if(quan != 0){
+			shopping_cart_list.buy.push(goods);
+		}else{
+			shopping_cart_list = null;
+		}
+	}else{
+		var shopping_cart_list = $.cookie('shopping_cart_list'+order_id);
+		var id_arr=new Array();
+		var tmp_id_arr=new Array();
+		$.each(shopping_cart_list.buy,function(k,v){
+			if(v.i!=0){
+				id_arr[k]=v.i;	
+			}
+			if(v.t > 0){  //存入新增菜品的临时id
+				tmp_id_arr[k]=v.t;
+			}
+		});
+		var state = $.inArray(goods_id,id_arr);  //jquery in_array方法，没有则返回-1 有则返回所在位置
+		
+		var tmp_state=$.inArray(tmp_goods_id,tmp_id_arr);
+
+		if(state == -1 && tmp_state== -1){
+			if(quan != 0){
+				shopping_cart_list.buy.push(goods);
+			}		
+		}else if(state!= -1){
+			if(quan != 0){
+				shopping_cart_list.buy[state] = {'i':goods_id,'n':goods_name,'p':price,'q':quan,'r':quantity_reset,"k":packing,"t":0};
+			}else{
+				shopping_cart_list.buy.splice(state,1);
+			}	
+		}else{
+			if(quan != 0){
+				shopping_cart_list.buy[tmp_state] = {'i':goods_id,'n':goods_name,'p':price,'q':quan,'r':quantity_reset,"k":packing,"t":tmp_goods_id};
+			}else{
+				shopping_cart_list.buy.splice(state,1);
+			}	
+		}
+	}
+	console.log($.cookie('shopping_cart_list'+order_id,shopping_cart_list,{expires:1,path:'/'}));
+}	
+
+	function order_change(price,packing,status)
+	{
+		//价格变动显示
+		var goods_amount_old=$("#goods_amount").html();
+		var packing_fee_old=$("#packing_fee").html();
+		var order_amount=$("#order_amount").html();
+	
+		if(status==1){
+			//价格增加
+			var goods_amount_new=add(goods_amount_old,price);
+			var packing_fee_new=add(packing_fee_old,packing);
+			var order_amount_new=add(goods_amount_new,packing_fee_new);
+			order_amount_new=add(order_amount_new,6);
+		}else{
+			//价格减少
+			var goods_amount_new=red(goods_amount_old,price);
+			var packing_fee_new=red(packing_fee_old,packing);
+			var order_amount_new=add(goods_amount_new,packing_fee_new);
+			order_amount_new=add(order_amount_new,6);
+		}
+		
+		$("#goods_amount").html(goods_amount_new);
+		$("#packing_fee").html(packing_fee_new);
+		$("#order_amount").html(order_amount_new);
+	
+	}
+	
+	function clickmiss()
+	{
+		var store_id = $("input[name='store']").attr("value");
+		$.ajax({
+			url:"/orderdisplay/ordernew",
+			type:"post",
+			dataType:"Json",
+			data:{"store_id":store_id},
+			success:function(result){
+				if(result.state=="-1"){
+					window.location.href="/orderdisplay?openId="+openid;
+				}else{
+					order_new_show();  //触发新订单展示
+				}
+			}
+		
+		});
+	}
+	
+	function new_order()
+	{
+		var store_id = $("input[name='store']").attr("value");
+		$.ajax({
+			type:"post",
+			url:"/orderdisplay/ordernew",
+			data:{"store_id":store_id},
+			dataType:'json',
+			success:function(result)
+			{
+				if(result.state=="-1")
+				{
+					$("#count").html("0");
+				}else if(result.state=="1")
+				{	
+					$("#count").html(result.data);
+				}else{
+					alert(result.message);
+				}
+			}
+		});
+	};
+	var order = new (function(){
+		var incrementTime = 1000*10; 
+		// Start the timer
+		$(function() {
+			order.Timer = $.timer(new_order,incrementTime,true);  
+		});
+	});
+	
+	//新订单的显示
+	function order_new_show()
+	{
+		var store_id=$("input[name='store']").attr("value");
+		$.ajax({
+			type:"post",
+			url:"/orderdisplay/newshow",
+			dataType:"json",
+			data:{"store_id":store_id},
+			beforeSend:function(){
+				$(".new_order_tips").show();
+			},
+			success:function(result)
+			{
+				if(result.state=="-1"){
+				
+					alert("其它店员已经处理了该订单!");
+					
+				}else if(result.state=="-2"){
+				
+					alert("获取新订单信息时发生异常!");
+					
+				}else{
+						order_id = result.data['order_id'];  //修改订单号信息
+					var  html="<input type=\"hidden\" name='order' value='"+result.data['order_id']+"'>";
+						 html+="<input type=\"hidden\" name='store' value='"+result.data['store_id']+"'>";
+						 html+="<input type=\"hidden\" name='openid' value='"+openid+"'>";
+						 html+="<div class=\"detail\">姓名:<span id=\"name\">"+result.data['consignee']+"</div>";
+						 html+="<div class=\"detail\">电话:<span style='color:blue'>"+result.data['tel']+"</span></div>";
+						 html+="<div class=\"detail\" style='height:auto'>地址:<span>"+result.data['address']+"</span>";
+						 html+="<input type='hidden' name='yes_no' value='"+result.data['dizhi_status']+"'>";
+						 if(result.data['dizhi_status']=="true"){
+							html+="<span style=\"color:red\">(在美食送的配送范围内)</span>";
+							html+="</div>";
+						 }else{
+							html+="</div>";
+							html+="<div><span style='color:white'>地址:</span><span style=\"color:red\">(超区，请于配送方联系，010-65239869)</span></div>";
+						 }
+						 html+="<div class=\"detail\">送达时间:<span id=\"require_time\">"+result.data['require_time']+"</span></div>"
+						 html+="<div class=\"detail\">发票抬头:<span id=\"receipt\">"+result.data['receipt']+"</span></div>";
+						 html+="<div class=\"detail\">菜单列表:</div>";
+						 $.each(result.data['goodsinfo'],function(key,value){
+							html+="<div  style='height:auto' class=\"detail\" id=\"detail_"+value['goods_id']+"\">";
+							html+="<input type='hidden' name=\"quantity_reset_"+value['goods_id']+"\" value='"+value['quantity']+"'>";
+							html+="<span style='width:30%' id=\"name_"+value['goods_id']+"\">"+value['goods_name']+"</span>";
+							html+="<span style='width:17%' id=\"price_"+value['goods_id']+"\">"+value['price']+"</span>";
+							html+="<span style='width:17%' id=\"quan_"+value['goods_id']+"\">x"+value['quantity']+"</span>";
+							html+="<span style='width:26%' class='"+value['goods_id']+"'><input type='button' value=\"+\" class='quan_add'><input type='button' value=\"-\" class='quan_red'></span>";
+							html+="<input type=\"hidden\" name='packing_"+value['goods_id']+"' value='"+value['packing']+"'>";
+							html+="</div>";
+						 });  //订单详细商品的显示部分结束
+							html+="<div class=\"detail\"><a href=\"javascript:\" class=\"goods_edit\" >编辑菜品</a></div>";
+							html+="<div class=\"detail\" style='height:auto'>备注:"+result.data['remark']+"</div>";
+							html+="<div class=\"detail\">消费:餐饮<span id=\"goods_amount\">"+result.data['goods_amount']+"</span>+包装<span id=\"packing_fee\">"+result.data['packing_fee']+"</span>+配送<span id=\"shipping_fee\">"+result.data['packing_fee']+"</span>=<span id=\"order_amount\">"+result.data['order_amount']+"</span></div>";
+						
+							$("#one_order_show").html(html);
+							//$("#one_order_show div").css("height","auto");
+							$("input[type='button']").attr("disabled","disabled");  //还原按钮不可点
+				}
+			
+			},
+			complete:function(){
+				$(".new_order_tips").hide();	
+			},
+			
+		
+		})
+	
+	};
+	
+	//连接美食送，推送给美食送
+	function putin()
+	{
+		var order_amount=$("#order_amount").html();
+		$.ajax({
+			type:"post",
+			dataType:"json",
+			url:"/orderpush/detail",
+			async:"false",
+			data:{"order_id":order_id,"order_amount":order_amount},
+			success:function(result){
+				if(result.ret=="1"){
+					clickmiss();
+				}else{
+					alert("数据推送到美食送时失败!");
+				}
+			}
+		});
+	}
+
+</script>
+<script type="text/javascript">
+	$.cookie.json = true;
+	//当前页面所用的order_id
+	var order_id=$("input[name='order']").attr("value");
+	var openid=$("input[name='openid']").attr("value");
+	//在页面刷新或未提交离开时，先清除该订单的cookie
+	$.cookie('shopping_cart_list'+order_id,null,{expires:-1,path:'/'});
+	
+	$(function(){
+		//初进入页面所有button按钮为不可点状态
+		$("input[type='button']").attr("disabled","disabled");
+		//获取可视化高度，定位底部
+		var height=$(window).height();
+		$("body").css("height",height);
+		//增加菜单和编辑菜单按钮切换
+		$(".goods_edit").live("click",function(){
+			
+			$("input[type='button']").attr("disabled",false);
+			
+			$(this).parent().html("<a href='javascript:' class='goods_add'>增加菜品</a>");
+		
+		});
+		//加减号的操作
+		$(".quan_add").live("click",function(){
+			var goods_id=$(this).parent().attr("class");  //goods_id
+			
+			var quantity_reset=$("input[name='quantity_reset_"+goods_id+"']").attr("value");  //原先的数量
+
+			var quantity=$("#quan_"+goods_id).html().split("x")[1];							//现在的数量
+			
+			var goods_name=$("#name_"+goods_id).html();										//商品名称
+			
+			var price=$("#price_"+goods_id).html();											//商品价格
+			
+			var packing=$("input[name='packing_"+goods_id+"']").attr("value");					//包装费
+			
+			quantity=parseInt(quantity)+1;
+			
+			total_change(goods_id,goods_name,price,quantity_reset,quantity,packing,0);  //写入到cookie的数量变化
+			
+			$("#quan_"+goods_id).html("x"+quantity);
+			
+			order_change(price,packing,1);//价格新的展示
+			
+		});
+		$(".quan_red").live("click",function(){
+			var goods_id=$(this).parent().attr("class");
+			
+			var quantity_reset=$("input[name='quantity_reset_"+goods_id+"']").attr("value");
+			
+			var quantity=$("#quan_"+goods_id).html().split("x")[1];
+			
+			var price=$("#price_"+goods_id).html();
+			
+			var packing=$("input[name='packing_"+goods_id+"']").attr("value");
+			
+			var goods_name=$("#name_"+goods_id).html();
+			
+			quantity=parseInt(quantity);
+			
+			if(quantity>=2){
+				quantity=quantity-1;
+				
+				$("#quan_"+goods_id).html("x"+quantity);
+				
+				total_change(goods_id,goods_name,price,quantity_reset,quantity,packing,0); 
+				
+				order_change(price,packing,-1);//显示到底部的总的变化
+				
+			}else{
+				if(confirm("确实要删除该菜品吗?")){
+					
+					quantity=0;
+									
+					$(this).parent().parent().remove();
+					
+					total_change(goods_id,goods_name,price,quantity_reset,0,packing,0); 
+					
+					order_change(price,packing,-1);//显示到底部的总的变化
+					
+				}else{
+				
+					total_change(goods_id,goods_name,price,quantity_reset,quantity,packing,0); 
+				
+					return;
+				}
+			}
+		});
+		
+	//点击增加菜品时的操作
+	$(".goods_add").live("click",function(){
+		
+		var num=$("input[name='num']").attr("value");
+		
+		var html="<div class='detail goods_append"+num+"'>";
+					html+="<span style='width:30%;'><input style='width:"+$(window).width()*25/100+"px' type='text' name='new_goods_name"+num+"'></span>";
+					html+="<span style='width:17%;'><input style='width:"+$(window).width()*13/100+"px'  type='text' name='new_goods_price"+num+"'></span>";
+					html+="<span style='width:13%;'><input style='width:"+$(window).width()*10/100+"px'  type='text' name='new_goods_quantity"+num+"'></span>";
+					html+="<span style='width:39%;'><input type='button' name='check"+num+"' value='添加'><input type='button' name='del"+num+"' value='删除'></span>";
+			html+="</div>"
+		
+		$(this).parent().before(html);
+		
+		//$(".detail span").css("display","inline-block");
+
+		num=num*1+1;
+		
+		$("input[name='num']").attr("value",num);
+		
+	});
+	
+	//菜品添加操作
+
+	$("input[name^='check']").live("click",function(){
+		//菜品名
+		var num=$(this).attr("name").split("check")[1];
+		
+		var goods_name=$("input[name='new_goods_name"+num+"']").val();
+		//菜品单价(加包装费)
+		var goods_price=$("input[name='new_goods_price"+num+"']").val();
+		//菜品数量
+		var goods_quantity=$("input[name='new_goods_quantity"+num+"']").val();
+		
+		if(!num || !goods_price || !goods_quantity)
+		{
+			alert("请将要加入的新菜品信息填写完整！");
+			return;
+		}else
+		{	
+			$("input[name='del"+num+"']").parent().css("width","26%");
+			$("input[name='del"+num+"']").parent().prev().css("width","17%");
+			$("input[name='del"+num+"']").parent().html("<input type='hidden' name='tmp_goods_id_"+num+"' value='"+num+"'><input type='button' value='+' class='new_add'><input type='button' value='-' class='new_red'>");			
+			changeOrderJson(0,goods_name,goods_price,goods_quantity,0,0,num);  //新菜品写入cookie
+			
+			$("input[name^='new_goods']").attr("disabled","disabled");//新添加后input框不能操作
+			
+			
+			
+			change_show();
+			
+			var total_price=(goods_price*1)*(goods_quantity*1);
+			
+			order_change(total_price,0,1);
+		}
+
+	});
+	
+	$(".new_add").live("click",function(){
+		//<input type='hidden' name='tmp_goods_id_"+num+"' value='"+num+"'>
+		var quantity=$(this).parent().prev().children("input").val();
+		
+		var goods_id=0;
+		
+		var quantity_reset=0;
+		
+		var packing=0;
+		
+		var tmp_goods_id=$(this).prev().attr("value");
+		
+		quantity=parseInt(quantity)+1;
+		
+		var price=$(this).parent().prev().prev().children("input").val();
+		
+		var goods_name=$(this).parent().prev().prev().prev().children("input").val();
+		
+		$(this).parent().prev().children("input").val(quantity);
+		
+		total_change(goods_id,goods_name,price,quantity_reset,quantity,packing, tmp_goods_id);  //写入到cookie的数量变化
+		
+		order_change(price,packing,1);//价格新的展示
+		
+	});
+	
+	$(".new_red").live("click",function(){
+		var quantity=$(this).parent().prev().children("input").val();
+		
+		quantity=parseInt(quantity);
+		
+		var goods_id=0;
+		
+		var quantity_reset=0;
+		
+		var packing=0;
+		
+		var tmp_goods_id=$(this).prev().prev().attr("value");
+		
+		var price=$(this).parent().prev().prev().children("input").val();
+		
+		var goods_name=$(this).parent().prev().prev().prev().children("input").val();
+		
+		if(quantity>=2){
+				quantity=quantity-1;
+				
+				$(this).parent().prev().children("input").val(quantity);
+				
+				total_change(goods_id,goods_name,price,quantity_reset,quantity,packing,tmp_goods_id); 
+				
+				order_change(price,packing,-1);//显示到底部的总的变化
+				
+			}else{
+				if(confirm("确实要删除该菜品吗?")){
+				
+					$(this).parent().parent().remove();
+					
+					quantity=0;
+				
+					total_change(goods_id,goods_name,price,quantity_reset,0,packing,tmp_goods_id); 
+					
+					order_change(price,packing,-1);//显示到底部的总的变化
+					
+				}else{
+				
+					total_change(goods_id,goods_name,price,quantity_reset,quantity,packing,tmp_goods_id); 
+				
+					return;
+				}
+			}
+		
+	});
+	//菜品添加取消操作
+	
+	$("input[name^='del']").live("click",function(){
+	
+		var num=$(this).attr("name").split("del")[1];
+		
+		$(".goods_append"+num).remove(); //在未写入cookie之前直接删除
+	});
+	
+	//点击拒绝订单时的操作
+	
+	$(".order_reject").on("click",function(){
+	
+		if($(".reason").is(":hidden")){
+					
+			$(".reason").show();
+		}else{
+			
+			$(".reason").hide();
+		}
+		
+		
+	});
+	
+		//拒绝原因的相关操作
+	
+		$(".reason span").on("click",function(){
+			var reason=$(this).html();
+			order_del(order_id,reason);
+		});
+		
+		//点击数量跳转到订单列表页
+		$("#count").on("click",function(){
+			window.location.href="/orderdisplay/index?openId="+openid;
+		});		
+		//订单推送设置
+		$(".mss").on("click",function(){
+		
+		var status=$("input[name='yes_no']").attr("value");
+		
+		if(status!="true"){
+			alert("不在美食送的配送范围内，无法推送该订单!");
+			
+			return;
+		
+		}else{
+			var order_change_list = $.cookie('shopping_cart_list'+order_id);
+			if((order_change_list == undefined) || (order_change_list == null || order_change_list.buy[0]== undefined)){
+				$.ajax({
+					type:"post",
+					dataType:"json",
+					async:"false",
+					data:{"order_id":order_id,"status":"receive","delivery":"mess","openId":openid},
+					url:"/orderdisplay/status",
+					beforeSend:function(){
+						$(".show_hide").show();
+					},
+					success:function(result){
+						if(result.state=="1"){
+							if(result.smessage!=""){
+								alert(result.smessage);
+								}
+							putin();
+							clickmiss();
+						}else{
+							alert(result.message);
+						}
+					},
+					complete:function(){
+						$(".show_hide").hide();	
+					},
+				
+				});
+			}else{
+			//传入修改过的数据以及原先的goods_amount,order_amount等
+			var goods_amount=$("#goods_amount").html();
+			var packing_fee = $("#packing_fee").html();
+			var order_amount = $("#order_amount").html();
+			$.ajax({
+				type:"post",
+				dataType:"json",
+				async:"false",
+				data:{"order_change":order_change_list.buy,"order_id":order_id,"goods_amount":goods_amount,"packing_fee":packing_fee,"order_amount":order_amount,"delivery":"mess","openId":openid},
+				url:"/orderdisplay/change",
+				beforeSend:function(){
+					$(".show_hide").show();
+				},
+				success:function(result){
+					if(result.status=="1"){
+						putin();
+						clickmiss();
+					}else{
+						alert("处理订单失败!");
+					}
+				},
+				complete:function(){
+					$(".show_hide").hide();	
+				},
+			});
+		
+		  } 
+			
+		}
+	  });
+
+		//自送设置
+		$(".own").on("click",function(){
+		
+			var order_change_list = $.cookie('shopping_cart_list'+order_id);
+			if((order_change_list == undefined) || (order_change_list == null || order_change_list.buy[0]== undefined)){
+				$.ajax({
+					type:"post",
+					dataType:"json",
+					async:"false",
+					data:{"order_id":order_id,"status":"receive","delivery":"own","openId":openid},
+					url:"/orderdisplay/status",
+					beforeSend:function(){
+						$(".show_hide").show();
+					},
+					success:function(result){
+						alert(result.state);
+						if(result.state=="1"){
+							clickmiss();
+						}else{
+							alert("订单处理失败!");
+						}
+					},
+					complete:function(){
+						$(".show_hide").hide();	
+					},
+				
+				});
+			}else{
+			//传入修改过的数据以及原先的goods_amount,order_amount等
+				var goods_amount=$("#goods_amount").html();
+				var packing_fee = $("#packing_fee").html();
+				var order_amount = $("#order_amount").html();
+				$.ajax({
+					type:"post",
+					dataType:"json",
+					async:"false",
+					data:{"order_change":order_change_list.buy,"order_id":order_id,"goods_amount":goods_amount,"packing_fee":packing_fee,"order_amount":order_amount,"delivery":"own","openId":openid},
+					url:"/orderdisplay/change",
+					beforeSend:function(){
+						$(".show_hide").show();
+					},
+					success:function(result){
+						alert(result.message);
+						clickmiss();
+					},
+					complete:function(){
+						$(".show_hide").hide();	
+					},
+				});
+			
+			} 
+		});
+	});	
+</script>
+
+{/literal}

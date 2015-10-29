@@ -1,0 +1,104 @@
+{include file="$app_path/application/views/header.phtml"}
+<script>
+$(function() {
+	$("#tabs").tabs();
+	// $("#dialog").append('<img id="openDialogBeforeSend" src="/public/img/ajax-loader.gif" style="position:absolute;left:45%;top:45%;" />');
+	// $( "#dialog" ).dialog();
+});	
+
+	
+function changeNote(note) {
+	$("#dialog").html(note);
+}
+
+</script>
+
+<script>
+$(function() {
+	getBigSelect();
+	$('#bigSelect').change(function() {
+		getSmallSelect();
+	})
+});
+/**
+ * 获取一级SELECT元素
+ * @return 
+ */
+function getBigSelect() {
+	$.ajax({
+		type: "POST",
+		url: "/custom/crmorder/ajaxGetCause",
+		data: "type=initbig",
+		dataType: "html",
+		cache: false,
+		success: function(data, textStatus){
+			$("#bigSelect").empty();
+			$("#bigSelect").append(data);
+		},
+		error: function(){
+		}
+	});
+}
+/**
+ * 获取二级SELECT元素
+ * @return 
+ */
+function getSmallSelect(){
+	var bigVal = $("#bigSelect option:selected").index();
+	val = bigVal-1;
+	if(bigVal != ''){
+		$.ajax({
+			type: "POST",
+			url: "/custom/crmorder/ajaxGetCause",
+			data: "type=getsmall&val="+val,
+			dataType: "html",
+			cache: false,
+			success: function(data, textStatus){
+				$("#smallSelect").empty();
+				$("#smallSelect").append(data);
+			},
+			error: function(){
+			}
+		});
+	} else {
+		$("#smallSelect").html('<option value="0">请选择原因</option>');
+	}
+}
+
+function alertval() {
+	bigVal = $("#bigSelect option:selected").val() == 0 ? '' : $("#bigSelect option:selected").val();
+	smallVal = $("#smallSelect option:selected").val() == 0 ? '' : $("#smallSelect option:selected").val();
+	val = bigVal+smallVal;
+	alert(val);
+}
+</script>
+<select id="bigSelect" name="bigSelect"></select>
+<select id="smallSelect" name="smallSelect"><option value="0">请选择原因</option></select>
+<input type="button" value="提示" onclick="alertval();" />
+
+ 
+<input type="button" value="Dialog" onclick="openDialogNote('', '500', '300', '友情提示', true);return false;" />
+<input type="button" value="Dialog" onclick="openDialogNote('执行成功', '500', '300', '友情提示', true);return false;" />
+<input type="button" value="Dialog" onclick="changeNote('执行成功！');" />
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+<input type="button" value="上一条" onclick="window.location='/custom/crmorder/order?order_id=782&type=neworder&page=prev&orderBy=add_time&orderByVal=1334630940'" />
+<input type="button" value="下一条" onclick="window.location='/custom/crmorder/order?order_id=782&type=neworder&page=next&orderBy=add_time&orderByVal=1334630940'" />
+
+{include file="$app_path/application/views/footerNoStyle.phtml"}

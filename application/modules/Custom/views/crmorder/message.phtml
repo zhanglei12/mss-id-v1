@@ -1,0 +1,53 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="/application/modules/Custom/public/js/order.js"></script>
+<link type="text/css" rel="stylesheet" href="/public/css/ui.jqgrid.css">
+<link type="text/css" rel="stylesheet" href="/public/css/ui.order.css">
+<script type="text/javascript" src="/public/js/grid.locale-cn.js"></script>
+<script type="text/javascript" src="/public/js/jquery.jqGrid.min.js"></script>
+<script>
+  
+ 
+  
+  
+  
+  
+  
+  
+socket = io.connect('id.meishisong.mobi:11114');
+socket.on('new message',function(data){
+	console.log(data);
+
+})
+
+/**
+ * 模拟发送消息
+ * @to_users         array   接收者id
+ * @add_time         int     发送时间
+ * @to_user          int     发送者
+ * @status           int     状态
+ * @type             int     类型 
+ * @message          text    消息内容
+ */
+
+function send_message(){
+    //@数组接收者id
+    //1，已插入message表和message_send表
+    //2，返回true
+    //3，发送此消息到websocket
+//     {literal}
+    var to_users = ['a','b','c','d','e','6','7'];
+//    {/literal}
+    var add_time = new Date().getTime();
+    var to_user  = '10';
+    var status   = '1';
+    var type     = '0';
+    var message  = '尊敬的客户您好，您已登陆成功！';
+
+//    console.log(44444);
+    socket.emit('new message',{ to_users : to_users, add_time : add_time, to_user : to_user, status : status, type : type, message : message });
+
+}
+
+</script>
+<a href="#" onclick="send_message()">发送消息</a>
+{include file="$app_path/application/views/footer.phtml"}

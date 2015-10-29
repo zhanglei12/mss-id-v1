@@ -1,0 +1,846 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/custom/order.js"></script>
+<link type="text/css" rel="stylesheet" href="{$smarty.const.STATIC_URI}/id/css/ui.jqgrid.css">
+<link type="text/css" rel="stylesheet" href="{$smarty.const.STATIC_URI}/id/css/ui.order.css">
+<script type="text/javascript" src="{$smarty.const.STATIC_URI}/id/js/grid.locale-cn.js"></script>
+<script type="text/javascript" src="{$smarty.const.STATIC_URI}/id/js/jquery.jqGrid.min.js"></script>
+<script>
+$(function() {
+	//getParentArea();
+	getArea(0);
+	$(".neworder").attr("id", "a");
+	$("#parent_area").change(function(){
+		// getParentArea();
+		getArea(0);
+	})
+	$('#area').change(function() {
+    }).multipleSelect({
+    	width:130,
+    	multipleWidth: 130
+    });
+    $('#partner').change(function() {
+    }).multipleSelect({
+    });
+	//监控ESC键
+	$(document).keyup(function(event){
+		if(($("#esc_order_id").length > 0) && (event.keyCode == 27)){
+			socket.emit('unlock edit order', { uid: esc_order.uid, username: esc_order.empname, order_id: esc_order.order_id_num });
+		}
+		esc_order = {};
+	});
+});
+
+socket = io.connect('{$WEB_SOCKET_IP}:{$WEB_SOCKET_PORT}');
+// socket = io.connect('id.meishisong.mobi:11099');
+console.log(socket);
+var orderIdArr       = {};
+var orderIdUpdateArr = {};
+var open_order;
+var add_time         = 'add_time';  //排序条件
+var request_time     = 'request_time'; 
+var status           = 'status';
+var region_name      = 'region_name';
+var esc_order        = {};
+// pv.total      //总数
+// pv.page       //当前页
+// pv.pagesize   //每页的内容数
+// pv.lastpage   //最后一页
+// pv.loopcount  //共计多少分页
+// pv.previous   //前一页
+// pv.next       //后一页
+// pv.isprevious //是否显示前一页
+// pv.isnext     //是否显示后一页
+// pv.begin      //开始
+// pv.end        //结束
+// pv.length     //原始的步长（即传入的参数，也是begin -> end时的步长）
+// pv.step       //步长（真实的步长）
+// pv.isforward  //是否可以前进，指">>"
+// pv.isback     //是否可以后退，指"<<"
+// pv.forward    //前进到第几页
+// pv.back       //后退到第几页
+// pv.offset     //偏移量
+
+// function showPage(pageInfo) {
+	// // var showPage;
+	// var showPage = '共有'+pageInfo.total+'条记录 ';
+	// showPage += pageInfo.page+'/'+pageInfo.lastpage+'页 ';
+	// for (var i=1; i<=pageInfo.lastpage; i++) {
+		// if(i == pageInfo.page) {
+			// showPage += '<a onclick="WSSetPage('+i+');return false;" href="#">'+i+'</a> ';
+		// } else {
+			// showPage += '<a onclick="WSSetPage('+i+');return false;" href="#">'+i+'</a> ';
+		// }
+	// }
+	// return showPage;
+// }
+
+// // 设置分页 | NodeJS
+// function WSSetPage(page) {
+	// var pageInfo = {};
+		// pageInfo.page = page ? page : 1;
+	// socket.emit('page data', { pageInfo: pageInfo });
+// }
+
+
+function saveCheckOrder(order_id){
+    var selectOrder = [];
+	$("input[name='order_check[]']:checked").each(function(k,v) {
+		selectOrder[k] = $(this).val();
+    });
+    $("#save_check_order").val(selectOrder);
+}
+
+/**
+ * 选择快递员
+ * @param  int	lgs_id		
+ * @param  int	order_id	订单ID
+ * @param  int	region_id	区域ID
+ * @return html
+ */ 
+function selectCourier(lgs_id, order_id, region_id) {
+	/* $.ajax({
+			url: "/custom/crmorder/ifResConfirm",
+			type: "POST",
+			dataType: "JSON",
+			data: "order_id="+order_id,
+			success: function(result){
+				if(result == 0) {
+					alert("餐厅未确认,暂不可改派。");
+				} else if(result == 1){
+					openDialog(openUrl('/scheduling/scheduling/dispatch?lgs_id='+lgs_id+'&order_id='+order_id+'&region_id='+region_id), '1200', '500', '选择快递员', true);
+				}
+			}
+		}) */
+	openDialog(openUrl('/scheduling/scheduling/dispatch?lgs_id='+lgs_id+'&order_id='+order_id+'&region_id='+region_id), '1100', '500', '选择快递员', true);
+};
+
+/**
+ * 批量选择快递员
+ * @param  int	lgs_id		
+ * @param  int	order_id	订单ID
+ * @param  int	region_id	区域ID
+ * @return html
+ */ 
+function dispatchSelectCourier(lgs_id, order_id, region_id) {
+	var orderArr = [];
+	$("input[name='order_check[]']:checked").each(function() {
+            orderArr.push($(this).val());
+    });
+    if(orderArr.length < 1){
+    	alert("请选择订单！");
+    	return false;
+    }
+    var selectOrder = $("#save_check_order").val();
+
+    var arr = selectOrder.split(',');
+{literal}
+    var orderMessage = [];
+    for (var i = arr.length - 1; i >= 0; i--) {
+    	var order_id = arr[i];
+    	var area = $("#"+arr[i]).children('td').eq(20).text();
+    	orderMessage[i] = {'order_id': order_id, 'area': area};
+    };
+    for (var i = orderMessage.length - 1; i >= 0; i--) {
+    	if(i+1 < orderMessage.length){
+    		v = i+1;
+    		if(orderMessage[i].area != orderMessage[v].area){
+    			if(!confirm("您选择的订单区域不同 是否继续?")){
+    				return false;
+    			}else{
+    				break;
+    			};
+    		}
+    	}
+    };
+	
+{/literal}
+	openDialog(openUrl('/scheduling/scheduling/dispatch?lgs_id='+lgs_id+'&order_id='+order_id+'&region_id='+region_id+'&selectOrder='+selectOrder), '1100', '500', '选择快递员', true);
+};
+
+/**
+ * 锁订单
+ * @param  array	orderIdArr	订单ID
+ * @return html
+ */ 
+function luckOrder(orderIdArr) {
+	$(".ui-row-ltr").each(function() {
+		$(this).find(".showDefault").show();
+		$(this).find(".showEdit").hide();
+		$(this).find(".editNote").text("");
+		if(in_array($(this).attr("id"), orderIdUpdateArr.order_id)) {
+			$(this).find(".showDefault").hide();
+			$(this).find(".showEdit").hide();
+			$(this).find(".showLuck").show();
+			$(this).find(".luckNote").text(orderIdUpdateArr.username[$(this).attr("id")]+"编辑完成...");
+			return;
+		}
+		if(in_array($(this).attr("id"), orderIdArr.order_id)) {
+			$(this).find(".showDefault").hide();
+			$(this).find(".showLuck").hide();
+			$(this).find(".showEdit").show();
+			$(this).find(".editNote").text(orderIdArr.username[$(this).attr("id")]+"正在编辑...");
+		}
+	});
+}
+
+/**
+ * 更新订单
+ * @param  array	orderIdUpdateArr	订单ID
+ * @return html
+ */ 
+function updateOrder(orderIdUpdateArr) {
+	$(".ui-row-ltr").each(function() {
+		$(this).find(".showDefault").show();
+		$(this).find(".showLuck").hide();
+		$(this).find(".luckNote").text("");
+		if(in_array($(this).attr("id"), orderIdUpdateArr.order_id)) {
+			$(this).find(".showDefault").hide();
+			$(this).find(".showEdit").hide();
+			$(this).find(".showCsLuck").hide();
+			$(this).find(".showLuck").show();
+			$(this).find(".luckNote").text(orderIdUpdateArr.username[$(this).attr("id")]+"编辑完成...");
+			return;
+		}
+		if(in_array($(this).attr("id"), orderIdArr.order_id)) {
+			$(this).find(".showDefault").hide();
+			$(this).find(".showLuck").hide();
+			$(this).find(".showCsLuck").hide();
+			$(this).find(".showEdit").show();
+			$(this).find(".editNote").text(orderIdArr.username[$(this).attr("id")]+"正在编辑...");
+		}		
+	});
+}
+
+/**
+ * 解锁订单
+ * @param  array	username		用户ID
+ * @param  array	order_id		订单ID
+ * @param  array	order_sn		订单编号
+ * @param  array	cs_order_type	订单类型
+ * @return html
+ */ 
+function unlockOrder(username, order_id, order_sn,cs_order_type) {
+		if(username == orderIdArr.uid[order_id]) {
+			if(confirm("确认解锁订单编号为 "+order_sn+" 的订单？")) {
+				socket.emit('unlock edit order', { uid: username, order_id: order_id });
+			}
+		} else if (username == orderIdUpdateArr.uid[order_id]) {
+			if(confirm("确认解锁订单编号为 "+order_sn+" 的订单？")) {
+				socket.emit('unlock luck order', { uid: username, order_id: order_id });
+			}
+		} else {
+			alert("请联系正在编辑的同事解锁该订单！");
+		}
+}
+
+/**
+ * 订单操作	--表格控件
+ * @param  array	cellvalue	
+ * @param  array	options		
+ * @param  array	rowObject	
+ * @return html
+ */ 
+function opeOrder(cellvalue, options, rowObject){
+	var order_id	 = rowObject["order_id"];
+	var order_status = rowObject["status"];
+	var region_id	 = rowObject["region_id"];
+	var from_partner = rowObject['from_partner'];
+	var str  = '';
+		str += '<a href="#" onclick="updateOrderStatus('+order_id+',23)">退回</a> | <a href="#" onclick="selectCourier(\'\','+order_id+','+region_id+')">改派</a>';
+	if ((rowObject["from_part"] == '100042') || (rowObject["from_part"] == '100039')) {
+		str += ' | <a href="#" onclick="updateOrderStatus('+order_id+',3,\''+from_partner+'\')">取消</a>';
+	}
+	return str;
+}
+
+/**
+ * 收货人	--表格控件
+ * @param  array	cellvalue	
+ * @param  array	options		
+ * @param  array	rowObject	
+ * @return html
+ */ 
+function consigneeUrl(cellvalue, options, rowObject){
+	var buyer_id = rowObject["buyer_id"];
+	return '<a href="javascript:void(0)" onclick="consignee('+buyer_id+');">'+rowObject["consignee"]+'</a>';
+}
+
+/**
+ * 订单详情	--表格控件
+ * @param  array	cellvalue	
+ * @param  array	options		
+ * @param  array	rowObject	
+ * @return html
+ */ 
+function makeUrl(cellvalue, options, rowObject){
+	var order = rowObject["order_id"];
+	return '<a onclick="changecolor('+order+')" href="/custom/crmorder/order?order_id='+order+'" target="_blank">'+rowObject["order_sn"]+'</a>';
+}
+
+/**
+ * 添加多选框	--表格控件
+ * @param  array	cellvalue	
+ * @param  array	options		
+ * @param  array	rowObject	
+ * @return html
+ */ 
+function addBox(cellvalue, options, rowObject){
+	var order = rowObject["order_id"];
+	return '<input type="checkbox" class="order_check" name="order_check[]" value="'+order+'" onclick="saveCheckOrder('+order+')">';
+}
+
+/**
+ * 订单解锁	--表格控件
+ * @param  array	cellvalue	
+ * @param  array	options		
+ * @param  array	rowObject	
+ * @return html
+ */ 
+function unlock(cellvalue, options, rowObject){
+	var order_id = rowObject["order_id"];
+	var order_sn = rowObject["order_sn"];
+	return '<a href="javascript:void(0)" onclick="unlockOrder({$username},'+order_id+','+order_sn+');" title="解锁"> &nbsp; &nbsp; </a>';
+}
+
+/**
+ * 订单锁	--NodeJs-socket
+ * @return array
+ */ 
+socket.on('lock new order', function (data){
+	orderIdArr = data;
+	luckOrder(orderIdArr);
+});
+
+/**
+ * 获取锁订单	--NodeJs-socket
+ * @return array
+ */ 
+socket.on('lock orders', function (data){
+	var order_id_num = data.order_id_num;
+	var empname = data.empname;
+	var uid = data.uid;
+	esc_order.order_id_num = order_id_num;
+	esc_order.empname 	   = empname;
+	esc_order.uid		   = uid;
+	if(in_array(order_id_num, data.order_id)) {
+		socket.emit('edit order', { uid: uid, username: empname, order_id: order_id_num, status: 'newOrder', edit: 0 });
+		alert(data.username[order_id_num]+"正在对该订单做修改，订单已被锁定！");
+		closeDialog();
+	} else{
+		socket.emit('edit order', { uid: uid, username: empname, order_id: order_id_num, status: 'newOrder', edit: 1 });
+	}
+});
+
+/**
+ * 更新订单	--NodeJs-socket
+ * @return array
+ */ 
+socket.on('update new order', function (data){
+	orderIdUpdateArr = data;
+	updateOrder(orderIdUpdateArr);
+});
+
+/**
+ * 信息实时推送至前端	--NodeJs-socket
+ * @return array
+ */ 
+socket.on('new order', function (data){
+	var i = 0;
+	if(data.pageInfo.scrollStat == 1){
+		winUnload();  //记录滚动条位置
+	}
+	$(".discolor").remove();
+	mysqldata = data.hello;
+	pageInfo = data.pageInfo;
+	var partner = {$json_partner};
+	var orderstatus = {$json_orderStatus};
+	var orderType = {$json_orderType};
+	var order = {$json_statusArr};
+	var nowUnix = getNowUnix();
+	// {literal}
+	$("#list4").clearGridData();
+	jQuery("#list4").jqGrid({
+		datatype: "local",
+		height: 530,
+		autowidth:true,
+		//width:1378,
+		// colNames:['','Edit','Luck','订单id','订单编号','订单编号Edit','订单编号Luck','合作伙伴订单编号','合作伙伴','订单类型','<a href="#" onclick="turn(add_time)" id="add_time"><p>下单时间</p><div class="jquery_orderby"><ul><li id="limit_top_add_time" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_add_time" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a>','<a href="#" onclick="turn(request_time)" id="request_time"><p>要求送达时间</p><div class="jquery_orderby"><ul><li id="limit_top_request_time" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_request_time" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a>','订单金额','餐厅确认','收货人id','收货人','收货人电话','收货地址','餐厅名称','regin_id','区域','配送类型','<a href="#" onclick="turn(status)" id="status"><p>状态</p><div class="jquery_orderby"><ul><li id="limit_top_status" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_status" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a>','操作','操作Edit','操作Luck'],
+		colNames:['','Edit','Luck','订单id','订单编号','订单编号Edit','订单编号Luck','合作伙伴订单编号','合作伙伴','订单类型','<a href="#" onclick="turn(add_time)" id="add_time"><p>下单时间</p><div class="jquery_orderby"><ul><li id="limit_top_add_time" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_add_time" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a>','<a href="#" onclick="turn(request_time)" id="request_time"><p>要求送达时间</p><div class="jquery_orderby"><ul><li id="limit_top_request_time" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_request_time" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a>','regin_id','<a href="#" onclick="turn(region_name)" id="region_name"><p>区域</p><div class="jquery_orderby"><ul><li id="limit_top_region_name" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_region_name" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a>','餐厅名称','订单金额','收货人id','收货人','收货地址','配送类型','餐厅确认','<a href="#" onclick="turn(status)" id="status"><p>状态</p><div class="jquery_orderby"><ul><li id="limit_top_status" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_status" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a>','操作','操作Edit','操作Luck','标注'],
+		colModel:[
+			{name:'icon',index:'icon',classes:'showDefault',width:'40',align:"center",formatter:addBox,sortable:false},
+			{name:'icon',index:'icon',classes:'showEdit editIcon',hidden:true,formatter:unlock,sortable:false},
+			{name:'icon',index:'icon',classes:'showLuck luckIcon',hidden:true,formatter:unlock,sortable:false},
+			{name:'order_id',index:'order_id',key:true,hidden:true,sortable:false},
+            {name:'order_sn',index:'order_sn',classes:'showDefault',width:'50px',formatter:makeUrl,align:'center',sortable:false},
+            {name:'order_sn',index:'order_sn',classes:'showEdit',width:'50px',align:'center',hidden:true,sortable:false},
+            {name:'order_sn',index:'order_sn',classes:'showLuck',width:'50px',align:'center',hidden:true,sortable:false},
+            {name:'partner_order_id',index:'partner_order_id',width:'50px',align:'center',sortable:false},  // 合作伙伴订单编号
+            {name:'from_partner',index:'from_partner',width:'50px',align:'left',sortable:false},
+            {name:'order_type',index:'order_type',width:'50px',align:"center",sortable:false},
+            {name:'add_time',index:'add_time',width:'130',sortable:false},
+            {name:'request_time',index:'request_time',classes:'request_time',width:'150',sortable:false},
+            // 收货人电话{name:'phone_mob',index:'phone_mob',align:"center",sortable:false},
+            {name:'region_id',index:'region_id',hidden:true,sortable:false},        //regin_id
+            {name:'region_name',index:'region_name',sortable:false},  //区域
+			{name:'seller_name',index:'seller_name',sortable:false},   //餐厅名称
+			{name:'order_amount',index:'order_amount',width:'100',align:'right',sorttype:"float",formatter:"number",formatoptions:{decimalPlaces:2},sortable:false},
+			{name:'buyer_id',index:'buyer_id',align:'center',hidden:true,sortable:false},  // 收货人id
+            {name:'consignee',index:'consignee',formatter:consigneeUrl,align:"left",sortable:false},  //收货人
+			{name:'address',index:'address',sortable:false,width:'300px'},  // 收货地址
+			{name:'cs_order_type',index:'cs_order_type',width:'80',align:"center",sortable:false,width:'50px'},  // 配送类型
+			{name:'res_confirm',index:'res_confirm',width:'80',align:'center',sortable:false,width:'50px'},   // 餐厅确认
+            {name:'status',index:'status',width:'100',align:"center",sortable:false},   // 状态
+            //{name:'opeOrder',index:'opeOrder',classes:'showDefault',align:'left',width:'145',formatter:opeOrder,sortable:false},
+            {name:'opeOrder',index:'opeOrder',classes:'showDefault',align:'left',width:'145',sortable:false},
+			{name:'opeOrder',index:'opeOrder',classes:'showEdit editNote',hidden:true,sortable:false},
+            {name:'opeOrder',index:'opeOrder',classes:'showLuck luckNote',hidden:true,sortable:false},
+			{name:'callOutColor',index:'callOutColor',align:"center",width:'40',classes:'callOutColor',sortable:false}
+        ],
+        rowNum:1000,
+        rownumbers:true,//添加左侧行号
+        altRows:true,
+        pager: "#plist47",
+        viewrecords: true, //是否在浏览导航栏显示记录总数
+        gridComplete:function(){
+        	luckOrder(orderIdArr);
+			//jquerySearch();
+        }
+	});
+	for (var i = mysqldata.length - 1; i >= 0; i--) {
+		var timeLess = mysqldata[i]['request_time'] - nowUnix;
+		var request_time = getLocalTime(mysqldata[i]['request_time']);
+		if(timeLess >= 3600){
+			mysqldata[i]['callOutColor'] = '<center><div style="background:green;" class="callOut_color"></div></center>';
+			mysqldata[i]['request_time'] = '<center><div style="color:green;" class="request_time">'+request_time+'</div></center>';
+		}else if(1800 <= timeLess && timeLess < 3600) {
+			mysqldata[i]['callOutColor'] = '<center><div style="background:blue;" class="callOut_color"></div></center>';
+			mysqldata[i]['request_time'] = '<center><div style="color:blue;" class="request_time">'+request_time+'</div></center>';
+		} else if(900 <= timeLess && timeLess < 1800) {
+			mysqldata[i]['callOutColor'] = '<center><div style="background:#DE9D43;" class="callOut_color"></div></center>';
+			mysqldata[i]['request_time'] = '<center><div style="color:#DE9D43;" class="request_time">'+request_time+'</div></center>';
+		} else if(timeLess < 900) {
+			mysqldata[i]['callOutColor'] = '<center><div style="background:red;" class="callOut_color"></div></center>';
+			mysqldata[i]['request_time'] = '<center><div style="color:red;" class="request_time">'+request_time+'</div></center>';
+		}
+		if(mysqldata[i]['res_confirm'] == 0){
+			mysqldata[i]['res_confirm'] = "未下单";
+		}else if(mysqldata[i]['res_confirm'] == 1){
+			mysqldata[i]['res_confirm'] = "已确认";
+		}else if(mysqldata[i]['res_confirm'] == 2){
+			mysqldata[i]['res_confirm'] = "已下单";
+		}else if(mysqldata[i]['res_confirm'] == 3){
+			mysqldata[i]['res_confirm'] = "驳回";
+		}
+		if(mysqldata[i]['cs_order_type'] == 1){
+			mysqldata[i]['cs_order_type'] = '<center><div class="zy_icon"></div></center>';	
+		}else if(mysqldata[i]['cs_order_type'] == 2 || mysqldata[i]['cs_order_type'] == 3){
+			mysqldata[i]['cs_order_type'] = '<center><div class="zb_icon"></div></center>';	
+		}
+		
+		mysqldata[i]['from_part'] = mysqldata[i]['from_partner'];
+		mysqldata[i]['from_partner'] = partner[mysqldata[i]['from_partner']];
+		mysqldata[i]['order_type'] = order[mysqldata[i]['order_type']];
+		mysqldata[i]['status'] = orderstatus[mysqldata[i]['status']];
+		<!-- mysqldata[i]['cs_order_type'] = orderType[mysqldata[i]['cs_order_type']]; -->
+		mysqldata[i]['add_time'] = getLocalTime(mysqldata[i]['add_time']);
+		// mysqldata[i]['request_time'] = getLocalTime(mysqldata[i]['request_time']);
+		var str  = '';
+			str += '<a href="#" onclick="updateOrderStatus('+mysqldata[i]['order_id']+',23)">退回</a> | <a href="#" onclick="selectCourier(\'\','+mysqldata[i]['order_id']+','+mysqldata[i]['region_id']+')">改派</a>';
+		if ((mysqldata[i]['from_part'] == '100042') || (mysqldata[i]['from_part'] == '100039')) {
+			mysqldata[i]['opeOrder'] = str + ' | <a href="#" onclick="updateOrderStatus('+mysqldata[i]['order_id']+',3,\''+mysqldata[i]['from_partner']+'\')">取消</a>';
+		} else {
+			mysqldata[i]['opeOrder'] = str;
+		}
+	};
+	// var mydata = '';
+ 	for(var i=0;i<=mysqldata.length;i++) jQuery("#list4").jqGrid('addRowData',i+1,mysqldata[i]);
+	var i = 0;
+	$(".ui-row-ltr").each(function(){
+		var orderid = mysqldata[i]['order_id'];
+		$(this).attr("id",orderid);
+		i++;
+	})
+	
+	if(i == 0){
+		$("#plist47").html("<span style='float:right; margin-right:20px;font-size:12px;'>没有查询记录!</span>");
+	}else{
+		// $("#plist47").html("<span style='float:right; margin-right:20px;font-size:12px;'>"+showPage(pageInfo)+"</span>");
+		$("#plist47").html("<div id='ui_page'><ul>" + showPage(pageInfo) + "</ul></div><span style='float:right; margin-right:20px;font-size:12px;'>" + showPageTwo(pageInfo) + "</span>");
+	}
+	$("#list4").trigger("reloadGrid");
+ 	
+ 	var open_order = $("#changecolor").val();
+	$("#"+open_order).addClass("open-order");
+	// 颜色标记
+	var i = 0;
+	$(".ui-row-ltr").each(function(){
+		var lineColor = mysqldata[i]['lineColor'];
+		if(lineColor) {
+			$(this).css("background", lineColor);
+		}
+		i++;
+	})
+    var checkOrder = $("#save_check_order").val();
+	var checkOrderArr = checkOrder.split(',');
+	$("input[name='order_check[]']").each(function(k,v) {
+		if($.inArray($(this).val(),checkOrderArr) > -1){
+			$(this).attr("checked",'true');
+		}
+    });
+	if(data.pageInfo.scrollStat == 1){
+		winLoad();  //加载滚动条位置
+	}
+	//设置默认排序样式
+    var order_by_add_time = $('#list4_request_time').attr('style').indexOf('background');
+	if(order_by_add_time == -1){
+		$('#list4_request_time').css('background','#AAAAAA');
+		$('#limit_top_request_time').removeClass("jquery_limit_add_two");
+		$('#limit_top_request_time').addClass("jquery_limit_add");
+	}
+	//解除遮罩
+    $("#rt-hidden").hide();
+    $("#rt-sub").hide();
+});
+
+/**
+ * 显示全部新订单
+ * @return html
+ */ 
+function showAll() {
+	getArea(1);
+	// $("#socket_switch").val("1");
+	// $(".ui-row-ltr").show();
+	$("#plist47").html("<span style='float:right; margin-right:20px;'>01共"+$(".ui-row-ltr:visible").length+"条数据</span>");
+	// WSSetPage(1);
+	var pageInfo = {};
+		pageInfo.page = page ? page : 1;
+		pageInfo.search = search ? search : {};
+	socket.emit('page data', { pageInfo: pageInfo });
+	// alert(2);
+	$("#searchFrom").reset();
+}
+
+/**
+ * 搜索
+ * @return array
+ */ 
+function jquerySearch() {
+
+	var seller_name_S	= $.trim($("#seller_name").val());
+	var order_sn_S	= $.trim($("#order_sn").val());
+	var consignee_S = $.trim($("#consignee").val());
+	var phone_mob_S = $.trim($("#phone_mob").val());
+	//var show_cs_order = $.trim($("#show_cs_order").val());
+	// var area_S		= $.trim($('#area option[value='+$("#area").val()+']').text());
+	var areaArr     = $("#area").multipleSelect("getSelects", "text");
+	var partnerArr  = $("#partner").multipleSelect("getSelects", "text");
+	
+	if(seller_name_S == "" && order_sn_S == "" &&consignee_S == "" &&phone_mob_S == "" &&areaArr == ""){
+			return false;
+	}
+	var search = {};
+		search.order_sn		= $.trim($("#order_sn").val());
+		search.consignee	= $.trim($("#consignee").val());
+		search.phone_mob	= $.trim($("#phone_mob").val());
+		search.seller_name	= $.trim($("#seller_name").val());
+		//search.show_cs_order= $.trim($("#show_cs_order").val());
+		search.cs 			= $.trim($("#csOrder").val());
+		search.areaArr		= $("#area").multipleSelect("getSelects", "val");
+	if(search.areaArr == ''){
+		return false;
+	}	
+	var partner_order		= $("#partner").multipleSelect("getSelects", "val");
+	if(in_array('100000',partner_order)){
+		partner_order.push('0','');
+		search.partnerArr = partner_order;
+	}else{
+		search.partnerArr = partner_order;
+	}
+	WSSearchOrder(search);
+}
+
+/**
+ * 获取订单 --NodeJS
+ * @param  array	search
+ * @return html
+ */ 
+function WSSearchOrder(search) {
+	console.log(search);
+	var pageInfo = {};
+		pageInfo.search = search;
+	$("#rt-hidden").css({width: '100%', height: '100%', display: 'block'}).show();
+    $("#rt-sub").css({top: (270), left: (($(document).width() - 37) / 2)}).show();	
+	socket.emit('page data', { pageInfo: pageInfo });
+}
+
+/**
+ * 显示分页一
+ * @param  array	pageInfo
+ * @return html
+ */ 
+function showPage(pageInfo) {
+    var showPage = '<li><a href="#" onclick="WSSetPage(page=1,'+pageInfo.lastpage+')">|◄ </a></li>';
+    showPage += '<li><a href="#" onclick="WSSetPage('+(pageInfo.page - 1)+','+pageInfo.lastpage+')"><◄</a></li>';
+    showPage += '<li><input type="text" id="sendPage" value="'+pageInfo.page+'" style="width:40px;">&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" onclick="WSSetPage('+(pageInfo.page)+','+pageInfo.lastpage+',size=1)">GO</a></li>';
+    showPage += '<li>共' + pageInfo.lastpage + '页</li>';
+    showPage += '<li><a href="#" onclick="WSSetPage('+(pageInfo.page+1)+','+pageInfo.lastpage+')">►></a></li>';
+    showPage += '<li><a href="#" onclick="WSSetPage('+pageInfo.lastpage+','+pageInfo.lastpage+')">►|</a></li>';
+    return showPage;
+}
+
+/**
+ * 显示分页二
+ * @param  array	pageInfo
+ * @return html
+ */ 
+function showPageTwo(pageInfo) {
+    var showPageTwo = pageInfo.page + '-' + pageInfo.lastpage;
+    showPageTwo += '共' + pageInfo.total + '条 ';
+    return showPageTwo;
+}
+
+/**
+ * 设置分页 --NodeJS
+ * @param  int	page
+ * @param  int	pageInfo
+ * @param  int	size
+ * @return html
+ */ 
+function WSSetPage(page,pageData,size) {
+	var t = /^[0-9]*[1-9][0-9]*$/;
+	if(size == 1){
+		page = $.trim($("#sendPage").val());
+	};
+	if (page > pageData) {
+		page = pageData;
+	} else if(page<1){
+		page = 1;
+	} else if (!t.test(page)) {
+		alert("您输入有误，请输入正整数！");
+		return false;
+	}
+	var pageInfo = {};
+		pageInfo.page = page ? page : 1;
+	//添加遮罩
+    $("#rt-hidden").css({width: '100%', height: '100%', display: 'block'}).show();
+    $("#rt-sub").css({top: (270), left: (($(document).width() - 37) / 2)}).show();	
+	socket.emit('page data', { pageInfo: pageInfo });
+}
+
+/**
+ * 排序 --NodeJS
+ * @param  str	orderName
+ * @return html
+ */ 
+var stat = 'desc';
+function turn(orderName) {
+	$('#list4_add_time').css('background','#EEEEEE');
+	$('#list4_status').css('background','#EEEEEE');
+	$('#list4_request_time').css('background','#EEEEEE');
+	$('#list4_region_name').css('background','#EEEEEE');
+	$('#list4_'+orderName).css('background','#AAAAAA');
+	$('.jquery_limit_top').removeClass("jquery_limit_add");
+	$('.jquery_limit_bottom').removeClass("jquery_limit_add");
+	$('.jquery_limit_bottom').addClass("jquery_limit_add_two");
+	$('.jquery_limit_top').addClass("jquery_limit_add_two");
+	if(stat == 'asc'){
+		stat = 'desc';
+		$('#limit_top_'+orderName).removeClass("jquery_limit_add_two");
+		$('#limit_top_'+orderName).addClass("jquery_limit_add");
+	}else{
+		stat = 'asc';	
+		$('#limit_bottom_'+orderName).removeClass("jquery_limit_add_two");
+		$('#limit_bottom_'+orderName).addClass("jquery_limit_add"); 	
+	}
+	
+    var pageInfo = {};
+	var orderBy = {};
+	if(orderName == region_name){
+	    //区域名称转为区域id
+		orderBy.orderName = 'region_id';
+	}else{
+		orderBy.orderName = orderName;
+	}
+	orderBy.orderSize = stat;
+    pageInfo.orderBy = orderBy;
+    console.log(pageInfo);
+    //添加遮罩
+    $("#rt-hidden").css({width: '100%', height: '100%', display: 'block'}).show();
+    $("#rt-sub").css({top: (270), left: (($(document).width() - 37) / 2)}).show();
+    socket.emit('page data', {pageInfo: pageInfo});  //发送数据到服务器
+}
+
+/**
+ * 记录滚动条 --Cookie
+ * @param  str	sName
+ * @param  str	sValue
+ * @return html
+ */ 
+function SetCookie(sName, sValue){
+    date = new Date();
+    s = date.getDate();
+    date.setDate(s + 1);   //设置cookie的有效期
+    document.cookie = sName + "=" + escape(sValue) + "; expires=" + date.toGMTString();  //创建cookie
+}
+
+function GetCookie(sName){
+    var aCookie = document.cookie.split("; ");  //将cookie中的数据切割成数组，方便遍历
+    for (var i = 0; i < aCookie.length; i++) {  //遍历cookie中的数据 
+        var aCrumb = aCookie[i].split("=");     //将键和值分开     
+        if (sName == aCrumb[0]) {               //判断是否是指定的键
+            return unescape(aCrumb[1]);         //返回键对应的值
+        }
+    }
+    return null;
+}
+
+function winLoad(){
+	$(".ui-jqgrid-bdiv").scrollTop(GetCookie("scrollTop"));
+}
+
+function winUnload(){
+	SetCookie("scrollTop", $(".ui-jqgrid-bdiv").scrollTop());
+}
+
+/**
+ * 重置按钮
+ * @return html
+ */ 
+function resetSearch(){
+	//getParentArea(0);
+	getArea(1);
+	$("#placeholder").html('全部选中');
+}
+// {/literal}
+
+/**
+ * 加载默认搜索
+ * @return array
+ */ 
+$(function(){
+	//搜索调度员所在区域订单
+	var search = {};
+	search.order_sn		= $.trim($("#order_sn").val());
+	search.consignee	= $.trim($("#consignee").val());
+	search.phone_mob	= $.trim($("#phone_mob").val());
+	search.seller_name	= $.trim($("#seller_name").val());
+	search.cs 			= $.trim($("#csOrder").val());
+	//search.show_cs_order= '0';
+	var areaList = '{$area}';
+	search.areaArr = areaList.split(",");
+	var partnerArr = $("#partner").multipleSelect("getSelects", "text");
+	var partner_order = $("#partner").multipleSelect("getSelects", "val");
+	if(in_array('100000',partner_order)){
+		partner_order.push('0','');
+		search.partnerArr = partner_order;
+	}else{
+		search.partnerArr = partner_order;
+	}
+	var pageInfo = {};
+	pageInfo.search = search;
+	socket.emit('page data', { pageInfo: pageInfo });
+})
+</script>
+<div id="search">
+	<form name="searchFrom" class="searchFrom" id="searchFrom" action="" method="get" onsubmit="jquerySearch();return false;">
+	<table class="inputstyle">
+		<tr>
+			<td width="12%">
+				<span>订单编号</span>
+				<input type="text" name="order_sn" id="order_sn" value="{$order_sn}" class="searchwidth neworder-search" />
+			</td>
+			<!-- <td width="12%" class="partner-box">
+				<span>合作伙伴</span>
+				<select name="partner[]" id="partner" class="partner neworder-search" multiple="multiple">
+						{$partnerList}
+				</select>
+			</td>
+			<td width="12%">
+				<span>支付方式</span>
+				<select name="payment_name" id="payment_name" class="payment_name neworder-search" >
+					{html_options options=$payment_nameList selected={$payment_name}}
+				</select>
+			</td> -->
+			<td width="12%">
+				<span>收货人用户名</span>
+				<input type="text" name="consignee" id="consignee" value="{$consignee}" class="searchwidth neworder-search" />
+			</td>
+			<td width="12%">
+				<span>收货人电话</span>
+				<input type="text" name="phone_mob" id="phone_mob" value="{$phone_mob}" class="searchwidth neworder-search" />
+			</td>
+			<td width="12%">
+				<span>餐厅名称</span>
+				<input type="text" name="seller_name" id="seller_name" value="{$seller_name}" class="searchwidth neworder-search" />
+			</td>
+			<td width="15%" class="partner-box">
+				<span>合作伙伴</span>
+				<div class="form-group floatLeft">
+					<select name="partner[]" id="partner" class="" multiple="multiple">
+						{$partnerList}
+					</select>
+				</div>
+			</td>
+			<td width="23%" colspan="2">
+				<div class="floatLeft"> 
+					<span>城市 -> 区域</span>
+					<select name="parent_area" id="parent_area" class="parent_area">
+						{html_options options=$parent_areaList selected=$parent_area}
+					</select>
+				</div>
+				<div class="form-group floatLeft area-top">
+					<input type="hidden" id="havearea" value="{$area}" />
+					<select name="area[]" id="area" class="area" multiple="multiple">
+						{html_options options=$areaList selected=$area}
+					</select>
+				</div>
+			</td>
+	<!--    <td width="10%" class="partner-box">
+				<span>订单显示</span>
+				<div class="form-group floatLeft">
+					<select name="show_cs_order" id="show_cs_order" class="csOrder neworder-search" >
+						<option value='0' selected >直营+众包可操作</option>
+						<option value='1'>全部</option>
+					</select>
+				</div>
+			</td>
+			<td width="10%" class="partner-box">
+				<span>配送类型</span>
+				<div class="form-group floatLeft">
+					<select name="csOrder" id="csOrder" class="csOrder neworder-search" >
+						{html_options options=$csOrder selected="1"}
+					</select>
+				</div>
+			</td> -->
+		</tr>
+		<tr align="center" class="search">
+			<td colspan="7">
+				<input type="hidden" id="changecolor" />
+				<input type="hidden" value="neworder" id="order_type_region" />
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 " onclick="resetSearch()" />
+				<input type="button" name="dispatch_emp" value=" 批量 改派 " onclick="dispatchSelectCourier()" />
+				<!-- <input type="reset" value="显示全部新订单" onclick="showAll();return false;" /> -->
+				<input type="hidden" id="socket_switch" value="1" />
+				<input type="hidden" id="save_check_order">
+			</td>
+		</tr>
+	</table>
+	</form>
+</div>
+
+<div id="list">
+	<table id="list4" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+	<tr id="order_tr">
+			<td id="norecords" colspan="17">加载中...</td>
+	</tr>
+	</table>
+</div>
+<div id="plist47" style="line-height:23px;"></div>
+<div id="rt-hidden">
+    <div id="rt-sub">
+        <img src="{$smarty.const.STATIC_URI}/id/img/ajax-loader_2.gif">
+    </div>	
+</div>
+ 
+{include file="$app_path/application/views/footer.phtml"}

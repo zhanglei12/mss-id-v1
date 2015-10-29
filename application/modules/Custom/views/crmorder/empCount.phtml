@@ -1,0 +1,132 @@
+{include file="$app_path/application/views/header.phtml"}
+<script src="{$smarty.const.STATIC_URI}/id/js/custom/order.js"></script>
+<link type="text/css" rel="stylesheet" href="{$smarty.const.STATIC_URI}/id/css/ui.order.css">
+<script>
+$(function(){
+	$(".empcount").attr("id", "a");
+		getArea(0);
+	$("#parent_area").change(function() {
+        getArea(0);
+	})
+	$('#area').change(function() {
+    }).multipleSelect({
+    	width: '178px'
+        });
+	var orderby = getvl("orderBy");
+	if(orderby > 0){
+		// $('#list4_'+orderby).css('background','#AAAAAA');
+		$('#list4_'+orderby).addClass("jquery_limit_th");
+		$('#limit_top_'+orderby).removeClass("jquery_limit_add_two");
+		$('#limit_top_'+orderby).addClass("jquery_limit_add");
+	}else if(orderby < 0){
+		orderby = -orderby;
+		$('#list4_'+orderby).addClass("jquery_limit_th");
+		$('#limit_bottom_'+orderby).removeClass("jquery_limit_add_two");
+		$('#limit_bottom_'+orderby).addClass("jquery_limit_add");
+	}
+	$(".sequence").click(function(){
+		var field = $(this).attr("id");
+		var orderby = getvl("orderBy");
+		if(orderby > 0){
+			field = -field;
+		}
+		window.location.href="/custom/crmorder/empcount?orderBy="+field;
+	})
+})
+function getvl(name) {
+	var reg = new RegExp("(^|\\?|&)"+ name +"=([^&]*)(\\s|&|$)", "i");
+	if (reg.test(location.href)) return unescape(RegExp.$2.replace(/\+/g, " "));
+	return "";
+}
+</script>
+<div id="search">
+	<form name="searchFrom" class="searchFrom" action="" method="get">
+	<table class="inputstyle">
+		<tr>
+			<td width="15%">
+				<span>姓名</span>
+				<input type="text" value="{$emp_name}" name="emp_name" class="searchwidth" />
+			</td>
+			<td width="15%" colspan="7">
+				<span>手机号</span>
+				<input type="text" value="{$emp_mobile}" name="emp_mobile" class="searchwidth" />
+			</td>
+			<!-- <td width="70%" colspan="2">
+				<div class="floatLeft">
+					<span>城市 -> 区域</span>{$area}
+					<select name="parent_area" id="parent_area" class="">
+						{html_options options=$parent_areaList selected={$parent_area}}
+					</select>
+				</div>
+				<div class="form-group floatLeft area-top">
+					<select name="area[]" id="area" class="area" multiple="multiple">
+						{html_options options=$areaList selected={$area}}
+					</select>
+				</div>
+			</td> -->
+			<td width="30%" colspan="2">
+				<div class="floatLeft">
+					<span>城市 -> 区域</span>
+					<select name="parent_area" id="parent_area" class="parent_area">
+						{html_options options=$parent_areaList selected={$parent_area}}
+					</select>
+				</div>
+				<div class="form-group floatLeft area-top">
+					<input type="hidden" id="havearea" value="{$area}" />
+					<select name="area[]" id="area" class="area" multiple="multiple">
+						{html_options options=$areaList selected={$area}}
+					</select>
+				</div>
+			</td>
+			<td  width="30%" colspan="5" >
+				<input type="hidden" value="backorder" id="order_type_region" />
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 "onclick="getArea(1)"/>
+			</td>
+		</tr>
+		<!--<tr align="center" class="search">
+			<td colspan="7">
+				<input type="hidden" value="backorder" id="order_type_region" />
+				<input type="submit" name="search" value=" 搜 索 " />
+				<input type="reset" name="reset" value=" 重 置 "onclick="getParentArea(0)"/>
+			</td>
+		</tr>-->
+	</table>
+	</form>
+</div>
+
+<div id="list">
+	<table style="width:100%" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle whiteSpace">
+		<tr class="total">
+			<td colspan="23" align="right">{$order_summary_show}</td>
+		</tr>
+		<tr>
+			<th>姓名</th>
+			<th>手机号</th>
+			<th>所属区域</th>
+			<th id="#list4_50"><a href="javascript:void(0);" class="sequence" id="50"><p>已完成订单数</p><div class="jquery_orderby"><ul><li id="limit_top_50" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_50" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a></th>
+			<th id="#list4_22"><a href="javascript:void(0);" class="sequence" id="22"><p>已取餐订单数</p><div class="jquery_orderby"><ul><li id="limit_top_22" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_22" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a></th>
+			<th id="#list4_20"><a href="javascript:void(0);" class="sequence" id="20"><p>已接受订单数</p><div class="jquery_orderby"><ul><li id="limit_top_20" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_20" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a></th>
+			<th id="#list4_30"><a href="javascript:void(0);" class="sequence" id="30"><p>异常订单数</p><div class="jquery_orderby"><ul><li id="limit_top_30" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_30" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a></th>
+			<th id="#list4_1"><a href="javascript:void(0);" class="sequence" id="1"><p>今日总订单数</p><div class="jquery_orderby"><ul><li id="limit_top_1" class="jquery_limit_top jquery_limit_add_two"></li><li id="limit_bottom_1" class="jquery_limit_bottom jquery_limit_add_two" ></li></ul></div></a></th>
+			<th>系统运行效率</th>
+		</tr>
+		{foreach from=$arr item=emparr}
+		<tr class="discolor">
+			<td>{$emparr.emp_name}</td>
+			<td>{$emparr.emp_mobile}</td>
+			<td>{$emparr.region_name}</td>
+			<td>{$emparr.today_finished}</td>
+			<td>{$emparr.today_gotfood}</td>
+			<td>{$emparr.today_received}</td>
+			<td>{$emparr.today_abnormal}</td>
+			<td>{$emparr.today_sum}</td>
+			<td>{$emparr.phone_mob}</td>
+		</tr>
+		{/foreach}
+		<tr class="total">
+			<td colspan="23" align="right">{$order_summary_show}</td>
+		</tr>
+	</table>
+</div>
+{include file="$app_path/application/views/footer.phtml"}

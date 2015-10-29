@@ -1,0 +1,281 @@
+BODY {
+	PADDING-RIGHT: 0px; PADDING-LEFT: 0px; FONT-SIZE: 12px; BACKGROUND: #f1f1f1; PADDING-BOTTOM: 0px; MARGIN: 0px; PADDING-TOP: 0px; font-weight:normal;
+}
+DIV {
+	FONT-SIZE: 12px; WORD-BREAK: break-all
+}
+FORM {
+	DISPLAY: inline
+}
+.clearboth {
+	CLEAR: both
+}
+A, #tabs #list A {
+	color: #FF6600;
+	TEXT-DECORATION: none;
+}
+A:hover, #tabs #list A:hover{
+	/*cursor:pointer;*/
+	TEXT-DECORATION: underline; 
+	/*background:#99cc66;
+	*background:#99cc66;
+	color:#fff;*/
+}
+INPUT {
+	LINE-HEIGHT: 14px;font-size:12px;}
+TABLE{font-size:12px;width:100%}
+	
+select{
+font-size:12px
+}
+
+body {
+	background-color: #FFF;
+}
+
+body { font: 12px/1.5em Verdana; }
+body,ul,li,dl,dt,dd,p,h1,h2,h3,h4,h5,table,tr,td,p,form,ol { margin:0; padding:0; }
+ul,li,dl,dt,dd { list-style:none; }
+
+/* Search style */
+#search {
+	clear: both;
+	width: 100%;
+	background-color: #EEE;
+	padding-bottom:5px;
+}
+
+.inputstyle {
+	width: 980px;
+	margin: auto;
+	padding: 0 0 0 10px;
+	background: #EEE;
+}
+.inputstyle select {
+	/* width: 148px;
+	line-height: 30px;
+	height: 30px;
+	width: 152px; */
+	height: 26px;
+    margin: 0;
+    padding: 0;
+}
+ .inputstyle .area {
+	width: 238px;
+} 
+/*.inputstyle input {
+	width: 120px;
+}*/
+.inputstyle input[type="text"] {
+	/*width: 152px;*/
+	height: 24px;
+    margin: 0;
+    padding: 0 4px;
+}
+.inputstyle input[type="submit"], .inputstyle input[type="reset"], .inputstyle input[type="button"] {
+	width: 100px;
+	/* line-height: 26px;
+	height: 26px; */
+	font-weight: 600;
+	margin-left: 20px;
+	margin-top: 20px;
+}
+.inputstyle span {
+	line-height: 30px;
+	height: 30px;
+	display: block;
+	color: black;
+}
+.inputstyle p {
+	vertical-align: middle;
+	display: inline;
+	color: red;
+}
+.searchwidth {
+	width: 102px !important;
+}
+.area-top {
+	margin-top:30px;
+}
+/* list style */
+#list{
+	font-weight:normal;
+	COLOR: #333;
+	font-size:12px;
+	margin:12px 20px;
+	margin:12px 20px;
+	width:auto !important;
+	width:100%;
+	max-width:100%;
+	line-height:18px;
+	/* min-height:200px; */
+}
+#list table{ background-color:#DDD;font-size:12px;width:100%;}
+#list td ,th{border:0px #ddd solid;}
+#list table tr{ background-color:#fff;}
+#list .tabletop{ background-color:#EEE;padding:8px;font-weight:bold}
+#list th{ background-color:#EEE;padding:0px;font-weight:bold}
+#list .tableleft{ background-color:#EEE;padding:3px;font-weight:bold}
+#list .img{border:4px #f1f1f1 solid}
+.tableStyle td, .tableStyle th { 
+	height: 30px !important;
+	line-height: 24px !important;
+	padding: 0 4px; 
+	max-width: 300px; 
+	/* white-space:nowrap;  */
+	text-overflow: ellipsis; 
+	overflow: hidden;
+}
+.tableStyleHeight td, .tableStyleHeight th { 
+	height: 24px !important;
+	line-height: 24px !important;
+	padding: 0 4px; 
+	max-width: 300px; 
+	/* white-space:nowrap;  */
+	text-overflow: ellipsis; 
+}
+#tabs #list, #dialog #list {
+	margin: 0 !important;
+}
+.whiteSpace td, .whiteSpace th {
+	/*white-space: nowrap; */
+	max-width: 300px;
+}
+
+/* alert note style */
+#addBox {
+	width: 200px;
+	height: 100px;
+	line-height: 80px;
+	z-index:100;
+	display:none; 
+	background: #EEE;
+	position: absolute;
+	top: 30%;
+	left: 45%;
+	font-size: 14px;
+	font-weight: 400;
+	color: #444;
+	text-align: center;
+	vertical-align: middle;
+	opacity: 0.97;
+}
+/* other style */
+.floatLeft {
+	float: left;
+}
+.width300 {
+	width: 360px;
+}
+.selectHeight {
+	height: 300px;
+}
+input[type="text"] {
+	text-align: left;
+}
+textarea {
+	font-size: 12px;
+}
+.bghover {
+	background: #EEE !important;
+}
+.fixedBottom {
+	width: 100%; 
+	height: 70px; 
+	background-color: #EEE; 
+	position: fixed; 
+	bottom: 0; 
+	left: 0;
+	border-top: 1px solid #CCC;
+}
+.fixedBottom ul {
+	width: 980px;
+	margin: auto;
+}
+.fixedBottom li {
+	float: left;
+}
+.changeColor {
+	color: blue;
+}
+.redColor {
+	color: red;
+}
+.bluebgColor {
+	background-color: #565656 !important;
+}
+.luckIcon {
+	position: relative;
+	background: url("/id/img/icon.jpg") no-repeat;
+	background-position: -117px -127px;
+}
+.editIcon {
+	position: relative;
+	background: url("/id/img/icon.jpg") no-repeat;
+	background-position: -24px -253px;
+}
+.goods_color {
+	color: blue;
+}
+.displayNone {
+	display: none;
+}
+
+/* css for timepicker */
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+.ui-timepicker-div dl { text-align: left; }
+.ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
+.ui-timepicker-div dl dd { margin: 0 10px 10px 45%; }
+.ui-timepicker-div td { font-size: 90%; }
+.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+
+.ui-timepicker-rtl{ direction: rtl; }
+.ui-timepicker-rtl dl { text-align: right; padding: 0 5px 0 0; }
+.ui-timepicker-rtl dl dt{ float: right; clear: right; }
+.ui-timepicker-rtl dl dd { margin: 0 45% 10px 10px; }
+#list4 a{
+	color:#ff6600;
+}
+.jqgfirstrow td{
+	height:0px !important;
+}
+.open-order{
+	background:#B3B2AF !important;
+}
+#list4 .ui-state-highlight{
+	/*background:transparent !important;*/
+}
+.partner-box .ms-drop{
+	width:160px;
+}
+.status-box .ms-drop{
+	width:160px;
+}
+.neworder-search{
+	width:100px !important;
+}
+.parent_area{
+	width: 60px;
+}
+.request_time{
+	color:green;
+}
+.order_sn{
+	/*width:100px !important;*/
+<<<<<<< HEAD
+	text-overflow:ellipsis; 
+	white-space:nowrap; 
+	overflow:hidden
+=======
+	text-overflow:ellipsis !important; 
+	white-space:nowrap !important; 
+	overflow:hidden !important;
+>>>>>>> test
+}
+.hidden{
+	display: none;
+}
+.fixed{
+	position:fixed;
+	top:0px;
+}

@@ -1,0 +1,2490 @@
+{include file="{$app_path}/application/views/index/header.phtml"}
+{include file="{$app_path}/application/views/index/main_header.phtml"}
+<style>
+    .ui-menu
+    {
+    	position:absolute;
+    	width:100px;
+    }
+</style>
+<style>
+ .city_right ul form li 
+  {
+    float: left;
+    font-size: 0.85em;
+    line-height: 25px;
+    width: 12%;
+  }
+  .type_sj ul form li a 
+  {
+    color: #4f4f4f;
+    font-size:0.85em;
+    margin-left: 4%;
+  }
+  .hzhb_sj ul form li a 
+  {
+    color: #4f4f4f;
+    font-size:0.85em;
+    margin-left: 4%;
+  }
+  #tabs-1,#tabs-2,#tabs-3,#tabs-4,#tabs-5,#tabs-6
+  {
+	margin-left:30px;
+	margin-top:10px;
+	padding:0;
+	text-align:left;
+  }
+  
+  #tabs-1 div,#tabs-2 div,#tabs-3 div,#tabs-4 div,#tabs-5 div,#tabs-6 div
+  {
+	margin:0px;
+	padding:0px;
+	float:left;
+  }
+ 
+  #selectable{
+	list-style-type:none;
+	margin:0;
+	padding:0;
+	width:60%;
+	text-align: center;
+  }
+  
+  #selectable .ui-selecting
+  {
+	background:#FECA40;
+  }
+  
+  #selectable .ui-selected
+  {
+	background:#F39814;
+	color: white;
+  }
+ 
+  #selectable li
+  {
+	margin:3px;
+	padding:0.4em;
+	line-height:20px;
+  }
+  #selectable li span
+  {
+	display:inline-block;
+	width:22%;
+  }
+  
+  #tabs-4 tr th
+  {
+	text-align:center;
+  }
+  
+  #tabs-4 tr td
+  {
+	text-align:center;
+  }
+
+  .on
+  {
+  	height:28px;
+  	width:54px;
+  	border:1px solid #d3d3d3;
+  	-moz-border-radius: 30px;
+  	border-radius: 4px;
+  }
+</style>
+<script type="text/javascript" src="/public/js/jquery.cxselect.js" ></script>  <!--多级联动-->
+<script type="text/javascript" src="/public/js/validate.js" ></script> <!--表单验证-->
+<script type="text/javascript" src="/public/js/form.js" ></script> <!--表单提交-->
+<script type="text/javascript" src="/public/js/store.js" ></script><!--自定义公用的店铺验证-->
+<link rel="stylesheet" type="text/css" href="/public/css/cmxform.css"/> <!--表单验证样式-->
+<script type="text/javascript" src="/public/js/jquery.pager.js" ></script>
+    <!-- 搜索开始 -->
+    <div class="search">
+    	<div class="search_width">
+	    	<div class="search_con">
+	    		<ul>
+	    			<form>
+	    				<li>店铺名称：<input type="text" value="" name="store_name"></li>
+	    				<li>新系统店铺ID：<input type="text" value="" name="store_id"></li>
+	    				<li>旧系统店铺id：<input type="text" value="" name="mss_store_id"></li>
+	    			</form>
+	    		</ul>
+
+	    	</div>
+	    	<div class="submit">
+	    		<span class="ss">
+	    			<a href="javascript:void(0);">搜索</a>
+	    			<a href="#"><img src="/public/img/fdj.gif"/></a>
+	    		</span>
+	    		<span class="cz">
+	    			<a href="javascript:void(0);">重置</a>
+	    			<a href="#"><img src="/public/img/cz.gif"/></a>
+	    		</span>
+	    	</div>
+	    </div>
+    </div>
+    <!-- 搜索结束 -->
+	<div id="dialog_ss" title="搜索提示：" style="display:none">
+	  <p>请勾选或填写搜索条件！</p>
+	</div>
+    <!-- 数据开始 -->
+    <div class="content">  
+    	<div class="page_header">
+    		<div style='width:auto;float:left;padding-left:1%' class='dianpu'><input type='checkbox' class='check_all'>&nbsp;全选&nbsp;&nbsp;&nbsp;</div>
+
+	    	<div class="page" id='pager' style='width:35%;float:left'>
+	    	</div>
+	    	<div id='count' class='dianpu' style='width:10%;float:left'></div>
+	    	<div class="dianpu" style='width:47%;float:right;'>
+	    		<span><img src="/public/img/xinjian.png"><a  class='store_add' onclick="store_add()">新建店铺</a></span>
+	    		<span><img src="/public/img/daochu.png"><a class='export_store'>导出店铺</a></span>
+	    		
+	    		<span id='store_upload'><img src="/public/img/shangchuan.png"><a class=''>批量推送</a></span>
+
+	    		<span id='store_off_load'><img src="/public/img/xiajia.png"><a class=''>取消推送</a></span>
+
+	    		<span id='store_shang_load'><img src="/public/img/xiajia.png"><a class=''>批量上架</a></span>
+
+	    		<span id='store_xia_load'><img src="/public/img/xiajia.png"><a class=''>批量下架</a></span>
+	    		
+	    	</div>
+	    </div>
+	    <div class="content_show">
+	    	<table class="table_con" >  <!--店铺区域-->
+	    	</table>
+	    </div>	 			  
+    </div>
+
+    <!-- 数据结束 -->
+
+     <!-- 数据开始 sunyanxin-->
+    <div class="content_dp" style="display:none">
+    	<div class="little_con" style='height:680px;overflow:auto'>	
+					<div class="bkuang">
+				
+					</div>		
+    	</div>
+		<div class='content-right' style='width:89%;height:680px;overflow:auto;'>
+		 <div id="tabs"  style='height:680px;overflow:auto;background-color:#fff;'>
+				<ul>
+					<li><a href="#tabs-2">店铺信息</a></li>
+					<li><a href="#tabs-3" id="gcategory" onclick="gcategory()">分类信息</a></li>
+					<li><a href="#tabs-4" id="goods" onclick="goods()">菜品信息</a></li>
+					<li><a href="#tabs-6" id="partner" onclick="partner()">合作伙伴</a></li>
+				</ul>
+					<div id="tabs-1">
+						
+					</div>
+					
+					<div id="tabs-2" class="dialog_left left"> <!--店铺编辑-->
+							<div class="con_show_dp dialog_style;margin:0;padding:0">  <!--店铺修改表单-->
+							<div class='dialog_left left'  style='width:60%;height:100%;float:left;'>
+								<form id="edit_form">
+									<input type='hidden' name='basic_store_id' value="">
+									<table>
+									<tr>
+										<td class='td_left'>店铺名称:</td>
+										<td>
+											<input type="text" name="store_name_edit"  id='store_name' value="" />
+											<span class='store_name_error' style='color:red'></span>
+										</td>
+										
+									</tr>
+
+
+									<tr>
+										<td class='td_left'>店铺id:</td>
+										<td>
+											crm:<span id="crm_store_id"></span>
+												<span>;</span>
+											ecmall:<span id="ecmall_store_id"></span>
+										</td>
+									</tr>
+
+
+									<tr>
+										<td class='td_left'></td>
+										<td></td>
+									</tr>
+									<tr>
+										 <td class='td_left'>所在区域</td>
+										 <td class="region_name">
+											<span class='region_hide'>
+												<input type='text' name='region_name' value="" style="width:202px">
+												<input type='button' onclick='region_change()' value='编辑' style='width:auto;padding:6px 6px;background: #617798;border:0;font-size:14px;color: #FFFFFF;-moz-border-radius: 5px;-webkit-border-radius:5px;'>
+											</span>
+											 <span class='region_edit' style='display:none'>
+												 <input type='hidden' name='region_name_edit' value=''>
+												 <select name='city' class="city" id='city'></select> 
+												 <select name='county' class="county" id='county'></select> 
+												 <select name='street' class="street" id='street'></select> 
+												 <select name='building' class="building" id='building'></select> 
+												 <span class='bd_id'></span>
+											 </span>
+										 </td>
+									</tr>
+									<tr>
+										<td class='td_left'>地址</td>
+										<td>
+											<input type="text" name="address"  id='address' value=""/>
+										</td>
+									</tr>
+
+									<tr>
+										<td class='td_left'>经纬度</td>
+										<td class='jingwei'>
+											<input type="text" name="longitude" id='longitude' value=""/>
+											<input type="text" name="latitude" id='latitude' value=""/>
+										</td>
+									</tr>
+									
+									<tr>
+										<td class='td_left'></td>
+										<td><span class='address_error' style='color:red'></span></td>
+									</tr>
+									
+									<tr>
+										<td class='td_left'>订餐电话</td>
+										<td><input type="text" name="tel" id='tel' value="{$store_detail.tel}"/></td>
+									</tr>
+									<tr>
+										<td class='td_left'></td>
+										<td>(电话格式:13634561986/010-64582561/400-211-6786)</td>
+									</tr>
+									<tr>
+										<td class='td_left'>所属分类</td>
+										<input type='hidden' name='cate_judge' value="" />
+										<td class='category'>
+											
+										</td>
+									</tr>
+									<tr>
+										<td class='td_left'>起送价</td>
+										<td>￥<input type="text" name="min_cost" id='min_cost' value=""/></td>
+									</tr>
+									<tr>
+										<td class='td_left'>配送费</td>
+										<td>￥<input type="text" name="delivery_fee" value=""/></td>
+									</tr>
+									<tr>
+										<td class='td_left'>餐厅是否能开发票</td>
+										<td>
+											<select name="receipt" class="receipt">
+												<option value='1'>是</option>
+												<option value='2'>否</option>
+											</select>
+										</td>
+									</tr>
+									<tr>
+										<td class='td_left'>上架</td>
+										<td class='if_show'>
+											<input type="radio" id='up' name="state" value='1' 
+											  />是
+											<input type="radio" id='down' name="state" value='2'/>否
+										</td>
+									</tr>
+
+									<tr>
+										<td class='td_left'>显示</td>
+										<td class='visibility'>
+											<input type="radio"  name="visibility" id="xianshi" value='Y'/>显示
+											<input type="radio" name="visibility" id="yincang" value='N' />隐藏
+										</td>
+									</tr>
+
+									<tr>
+										<td class='td_left'>结账方式</td>
+										<td>
+											<select name="checkout_type" class="checkout_type">
+												  <option value ="1">现结</option>
+												  <option value ="2">月结</option>
+												  <option value ="3">预付</option>
+											</select>
+										</td>
+									</tr>
+									<!--<tr>
+										<td class='td_left'>合作伙伴</td>
+										<td>
+											<input disabled type="text" name="partner" value=""/>
+										</td>
+									</tr>-->
+
+									<tr>
+										<td class='td_left'>商家通告</td>
+										<td>
+												<textarea  class='announce' name='announce' rows="3" cols="20">
+												</textarea>
+										</td>
+									</tr>
+									
+									<tr class='business_time'>
+										<td class='td_left'>营业时间</td>
+										<td>
+											早上:<input type='text' name='zao_start' value="">---
+												 <input type='text' name='zao_close' value="">
+										</td>
+									</tr>
+									<tr class='business_time'>
+										<td class='td_left'></td>
+										<td>
+											<span>(格式:07:00-09:00)</span>
+										</td>
+									</tr>
+									<tr class='business_time'>
+										<td class='td_left'></td>
+										<td>				
+											中午:<input type='text' name='zhong_start' value="">---
+												<input type='text' name='zhong_close' value="">
+										</td>
+									</tr>
+										<tr class='business_time'>
+										<td class='td_left'></td>
+										<td>
+											<span>(格式:12:00-14:00)</span>
+										</td>
+									</tr>
+									<tr class='business_time'>
+										<td class='td_left'></td>
+										<td>
+											晚上:<input type='text' name='wan_start' value="">---
+												<input type='text' name='wan_close' value="">
+										</td>
+									</tr>
+									<tr class='business_time'>
+										<td class='td_left'></td>
+										<td>
+											<span>(格式:17:00-21:00)</span>
+										</td>
+									</tr>
+
+									<tr>
+										<td class='td_left'>营业执照注册号:</td>
+										<td><input type='text' name='registration_mark'></td>
+									</tr>
+
+									<tr>
+										<td class='td_left'>店铺logo</td>
+										<td id='store_logo_file'><input type='file' name='file'></td>
+									</tr>
+									<tr>
+										<td class='td_left'>营业执照</td>
+										<td id='licence_file'><input type='file' name='licence_file'></td>
+									</tr>
+								</table>
+							</div>
+							<div class='dialog_left left' style='width:39%;height:100%;float:right;'>
+									<table>
+										<tr class='image'>
+											<td></td>	
+											<td>
+												<div style='width:200px;height:auto' id="logo_show">
+												</div>
+											</td>
+										</tr>
+
+										<tr class='licence_image'>
+											<td></td>	
+											<td>
+												<div style='width:200px;height:auto' id="licence_logo_show">
+												</div>
+											</td>
+										</tr>
+
+										<tr>
+											<td></td>
+											<td class='form_error_show' style='color:red'></td>
+										</tr>
+										<tr class="submit  submit_edit">
+											<td></td>
+											<td><input type="submit" value="提交" /></td>
+										</tr>
+									 </table>
+							</div>
+						 </form>
+						</div>  <!--店铺修改表单结束-->
+					</div>
+					<div id="tabs-3" class="dialog_left left"></div> <!--分类-->
+					<div id="tabs-4" class="dialog_left left"></div> <!--菜品-->
+					<div id="tabs-5" class="dialog_left left"></div> <!--预付款-->
+					<div id="tabs-6" class="dialog_left left"></div> <!--合作伙伴-->
+				</div><!--tabs结束-->
+			</div> <!--content-right结束-->
+		</div><!-- 内容结束 -->
+
+		<div id='store_edit_result'  title='店铺管理'>
+
+		</div>
+	
+		<div id='wufenlei' title='分类管理'>
+	
+		</div>
+
+		<div id='goods_dialog' title='菜品管理'>  <!--菜品添加模板-->
+
+		</div>
+		
+		<div id='goods_dialog_edit' title='菜品管理'>  <!--菜品编辑模板-->
+
+		</div>
+
+		<div id='partner'  title='合作伙伴管理'>
+
+		</div>
+
+		<div id='upload' title='菜品上下架管理'>
+
+		</div>
+
+		<div id='pull_off_shelves' title='店铺上下架管理'> <!--店铺推送-->
+
+		</div>	
+
+		<div id = 'export_store'  title= '导出店铺'>	<!--导出店铺-->
+
+		</div>				
+
+		<div id='export_table' style='display:none'>  <!--导出店铺-->
+
+		</div>
+
+		<div id='partner_store_state' title='店铺上下架管理'> <!--店铺的上架和下架操作-->
+
+		</div>
+
+
+    <!-- 内容结束 -->
+</body>
+</html>
+{literal}
+<script type='text/javascript'>
+$(function(){
+	$(".store_add").mouseover(function(){
+		$(this).css("cursor","pointer");
+	});
+	
+	$(".export_store").mouseover(function(){
+		$(this).css("cursor","pointer");
+	});
+	
+});  //function 的结束
+</script>
+
+<script type='text/javascript'>
+
+	//按条件搜索店铺(拼接搜索条件)
+	$(".ss").click(function(){
+		 search_check();
+		 $('.content').css('display','block');
+		 $('.content_dp').css('display','none');
+		
+	});
+
+	//搜索店铺前的过滤
+	search_check  = function(pageclickednumber)
+	{
+		if(!pageclickednumber)
+		{
+			pageclickednumber='1';
+		}
+		
+		var store_name = $("input[name='store_name']").val();
+		var store_id = $("input[name='store_id']").val();
+		var mss_store_id = $("input[name='mss_store_id']").val();
+		var region="";
+		var partner="";
+		var cate="";
+		//区域
+		$("input[name='second_region']").each(function(){
+			if($(this).is(":checked"))
+			{
+				region+=$(this).next().attr("id");
+				region+=",";
+			}
+		});
+		//店铺分类
+		$("input[name='cate']").each(function(){
+			if($(this).is(":checked"))
+			{
+				cate+=$(this).next().attr("id");
+				cate+=",";
+			}
+		});
+		//合作伙伴
+		$("input[name='partner']").each(function(){
+			if($(this).is(":checked"))
+			{
+				partner+=$(this).next().attr("id");
+				partner+=",";
+			}
+		});
+
+		if(!store_name && !store_id && !mss_store_id && !region && !cate && !partner){
+			$("#dialog_ss" ).dialog();
+			return false;
+		}
+		
+
+		store_search_show(pageclickednumber,store_name,store_id,mss_store_id,region,cate,partner);	
+	}
+
+	store_search_show = function(page,store_name,store_id,mss_store_id,region,cate,partner)
+	{
+		$.post('store',{'page':page,'store_name':store_name,'store_id':store_id,'mss_store_id':mss_store_id,'region':region,'cate':cate,'partner':partner},function(result){
+
+			store_result(result);
+		},'json');
+	}
+
+
+	//公用的店铺result
+	function store_result(result)
+	{
+			var html="";
+			html+="<tr class='tr_color'>";
+			html+="<th>选择</th>";
+			html+="<th>店铺id</th>";
+			html+="<th>店铺名字</th>";
+			html+="<th>店铺地址</th>";
+			html+="<th>店铺电话</th>";
+			html+="<th>分类</th>";
+			html+="<th>最低消费</th>";
+			html+="<th>营业状态</th>";
+			html+="<th>下架原因</th>";
+			html+="<th>操作</th>";
+			html += "<input type='hidden' name='result_id' value=''>"; //添加隐藏于存储搜索条件中的店铺id
+			html+="</tr>";
+
+			if(result.state!='1')
+			{
+				html += "<tr class='tr_color'>";
+				html += "<th colspan='9'>无搜索结果</th>";
+				html += "</tr>";
+				$(".table_con").html(html);
+
+				return  false;
+			}
+
+			var store_array = result.store_array;
+			var store_summary = result.store_summary_result;
+			var page = result.page;
+			
+			$(".page").pager({
+							pagenumber:page,
+							pagecount:store_summary,
+							buttonClickCallback:search_check,
+			});
+
+			$("#count").text("共 "+result.search_count+" 条数据");
+				var result_id="";
+			$.each(store_array,function(key,value){
+			
+				result_id += value['store_id']+',';  //存储店铺id，为了修改时左侧店铺展示
+			
+				if(key%2==0)
+				{
+					html += "<tr class='tr_color2'>";
+				}
+				else
+				{
+					html += "<tr class='tr_color'>";
+				}
+				html += "<td><input name='store_id' value='"+value['store_id']+"' type='checkbox'></td>";
+				html += "<td>"+value['store_id']+"</td>";
+				html += "<td>"+value['store_name']+"</td>";
+				html += "<td>"+value['address']+"</td>";
+				html += "<td>"+value['takeout_service_phone']+"</td>";
+				html += "<td>"+value['category_name']+"</td>";
+				html += "<td>"+value['min_cost']+"</td>";
+				if(value['state']==1)
+				{
+					html+="<td><div>";
+						 html+="<div>";
+							 html+="<button class='off' style='color:#ff923f'>上架</button>";   
+						 html+="</div>";
+						 html+="<ul style='z-index:9999'>";
+						   $.each(result.pull_off_reason,function(k,v){
+						   		 html+="<li class='off_reason' store_id='"+value['store_id']+"' value='"+v['id']+"'><a>"+v['reason']+"</a></li>";
+						   });
+						 html+="</ul>";
+					html+="</div></td>";
+					html += "<td id='off_reason_text"+value['store_id']+"'>----</td>";
+				}else
+				{	
+					html+="<td  value='2' store_id='"+value['store_id']+"'  class='state'><div>";
+						 html+="<div>";
+							 html+="<button class='on'>下架</button>";   
+						 html+="</div>";
+					html+="</div></td>";
+					html+="<td id='off_reason_text"+value['store_id']+"'>"+value['off_reason']+"</td>";
+		
+					
+				}
+
+     			if(value['mss_id']!=null)
+     			{
+     				
+     				html += "<td><a class='orange'  target='_blank' href='http://www.meishisong.cn/index.php?app=store&id="+value['mss_id']+"'>查看</a>|<a class='orange edit_store' value='"+value['store_id']+"' page="+page+" href='javascript:void(0);'>修改</a></td>";
+     			}else
+     			{
+     				//没有向mss推送的情况
+     				html+="<td><a class='orange  edit_store' class='edit_store' value='"+value['store_id']+"' page="+page+" href='javascript:void(0);'>修改</a></td>";
+     			}
+			
+				html += "</tr>";
+			});
+			
+				$(".table_con").html(html);
+				$("input[name=result_id]").val(result_id);//店铺id存入隐藏域。
+			
+				off_reason();
+
+	}
+
+	//载入下架原因
+	function off_reason()
+	{
+			$(".off").click(function(){
+					var menu = $(this).parent().next().show().position({
+								my:"left top",
+									at:"left bottom",
+									of:this
+						});
+      		$(document).on("click",function(){
+       				 menu.hide();
+      		});
+      				return false;
+    		})
+    		.parent()
+      		.buttonset()
+      		.next()
+        	.hide()
+        	.menu();
+	}
+
+	//店铺的上下架操作（光标）
+	$(document).on("mouseover",".state",function(){
+		$(this).css("cursor","pointer");
+	});
+	
+	$(document).on("click",".state",function(){
+
+		//此时为店铺的上架操作
+		var store_id = $(this).attr("store_id");
+
+		$this = $(this);
+		
+		$.post('/store/store/put_on_sale',{'store_id':store_id}, function(result){
+				console.log(result);
+				if(result.state==1)
+				{	
+					var html="<td><div>";
+						 html+="<div>";
+							 html+="<button class='off' style='color:#ff923f'>上架</button>"; 
+						 html+="</div>";
+						 html+="<ul style='z-index:9999'>";
+						   $.each(result.data,function(k,v){
+						   		 html+="<li class='off_reason' store_id='"+store_id+"' value='"+v['id']+"'><a>"+v['reason']+"</a></li>";
+						   });
+						 html+="</ul>";
+					html+="</div></td>";
+
+					$("#off_reason_text"+store_id).html("----");
+					$("#off_reason_text"+store_id).prev().replaceWith(html);
+					off_reason();
+					$("#pull_off_shelves").html("修改店铺上下架成功");
+					$("#pull_off_shelves").dialog();
+				}else
+				{
+					$("#pull_off_shelves").html("修改店铺上下架失败");
+					$("#pull_off_shelves").dialog();
+					return false;
+				}
+	 	},'json');		
+	});
+
+   $(document).on("click",".off_reason",function(){
+
+   		var reason_id = $(this).attr("value");
+   		var reason_name = $(this).text();
+   		var store_id = $(this).attr("store_id");
+
+   		var $this = $(this);
+	
+   		$.post('/store/store/put_off_sale',{'store_id':store_id,'off_reason':reason_id}, function(result){
+				if(result.state==1)
+				{
+					//下架成功
+					var html="<td  value='2' store_id='"+store_id+"'  class='state'><div>";
+						 html+="<div>";
+							 html+="<button class='on'>下架</button>";   
+						 html+="</div>";
+					html+="</div></td>";
+
+					$("#off_reason_text"+store_id).html(reason_name);
+					$("#off_reason_text"+store_id).prev().replaceWith(html);
+					$("#pull_off_shelves").html("修改店铺上下架成功");
+					$("#pull_off_shelves").dialog();
+
+				}else
+				{
+					$("#pull_off_shelves").html("修改店铺上下架失败");
+					$("#pull_off_shelves").dialog();
+					return false;
+				}
+	 	},'json');		
+   });
+
+
+
+	//店铺修改
+
+	//点击修改，搜索结果隐藏，修改页面显示sunyanxin
+	$(document).on('click','.edit_store',function(){
+		$(".content").css('display','none');//隐藏店铺列表
+		$(".content_dp").css('display','block');//显示单店修改
+		var store_id = $(this).attr("value");//点击修改获取店铺id
+		var page = $(this).attr("page");//获取page
+		var store_all_id = $("input[name=result_id]").val();//从隐藏域中获取搜索出来的所有店铺id
+
+		 $.ajax({
+             type: "POST",
+             url: "/store/store/edit",
+             data: {'store_id':store_id,'page':page,'store_all_id':store_all_id},
+             dataType: "json",
+             async:false,
+             success: function(data){
+             	if(data.state!='1')
+             	{
+             		var html = "<div style='color:red'>出现错误信息=>"+data.message+"</div>";
+             		$(".content_dp").html(html);
+             		return false;
+             	}
+             
+				$("#store_logo_file").empty();
+				$("#licence_file").empty();
+				$("#store_logo_file").append("<input type='file' name='file'>");
+				$("#licence_file").append("<input type='file' name='licence_file'>");
+
+               	//获取店铺数据，准备修改
+				$('input[name=store_name_edit]').val(data.store_detail.store_name);    //店铺名称
+
+				$("#crm_store_id").html(store_id);
+				$("#ecmall_store_id").html(data.store_detail.ecmall_store_id);
+				$('input[name=region_name]').val(data.store_detail.region_name);    //所在区域
+				$('input[name=address]').val(data.store_detail.address);       //地址
+				$('input[name=longitude]').val(data.store_detail.longitude);    //经纬度
+				$('input[name=latitude]').val(data.store_detail.latitude);		//经纬度
+				$('input[name=tel]').val(data.store_detail.takeout_service_phone);			//订餐电话
+				$('input[name=cate_judge]').val(data.store_detail.category2);		//分类
+				$('input[name=min_cost]').val(data.store_detail.min_cost);		//起送价
+				$('input[name=delivery_fee]').val(data.store_detail.delivery_fee);		//配送费
+				if(data.store_detail.receipt=='1'){									//如果有发票
+					$(".receipt").val(1);
+				}else{
+					$(".receipt").val(2);
+				}
+				
+				if(data.store_detail.state=='1'){		//如果上架
+					$('#up').prop('checked',true);
+					$('#down').prop('checked',false);
+				}else{
+					$('#up').prop('checked',false);
+					$('#down').prop('checked',true);
+				}
+
+				if(data.store_detail.visibility=='Y'){		//如果显示
+					$('#xianshi').prop("checked",true);
+					$('#yincang').prop("checked",false);
+				}else if(data.store_detail.visibility=='N'){
+					$('#yincang').prop("checked",true);
+					$('#xianshi').prop("checked",false);
+				}
+
+				if(data.store_detail.checkout_type=='1'){		//如果现结
+					$(".checkout_type").val(1);
+					
+				}else if(data.store_detail.checkout_type=='2'){
+					$(".checkout_type").val(2);
+				}else{
+					$(".checkout_type").val(3);
+				}
+
+				/*
+				$.each(data.partner_result,function(n,value) { 	//遍历合作伙伴
+					$('input[name=partner]').val(data.partner_result[n].partner_name);
+		        }); 
+		        */ 
+
+				$('input[name=zao_start]').val(data.store_detail.zao_start);//早上时间
+				$('input[name=zao_close]').val(data.store_detail.zao_close);
+				$('input[name=zhong_start]').val(data.store_detail.zhong_start);		//中午时间
+				$('input[name=zhong_close]').val(data.store_detail.zhong_close);
+				$('input[name=wan_start]').val(data.store_detail.wan_start);		//晚上时间
+				$('input[name=wan_close]').val(data.store_detail.wan_close);
+				$(".announce").text(data.store_detail.announce);
+				//营业执照注册号
+				$("input[name='registration_mark']").val(data.store_detail.registration_mark);
+
+				$('#gcategory').attr('store_id',data.store_detail.store_id);	//存入tab标签内，用于加载分类
+				$('#goods').attr('store_id',data.store_detail.store_id);   //存入tab标签内，用于加载菜品	
+				$('#partner').attr('store_id',data.store_detail.store_id);	//存入tab标签内，用于加载合作伙伴
+				$('input[name=basic_store_id]').val(data.store_detail.store_id);
+				if(data.store_detail.store_logo!=""){	//如果有图
+					$('#logo_show').html("<img id='image' src='"+data.store_detail.store_logo+"' width='200px'>");
+				}else
+				{
+					$('#logo_show').html("");
+				}
+
+				//查询营业执照
+				if(data.store_detail.license_pic!="" && data.store_detail.license_pic!=null)
+				{
+					var html = "营业执照:<br/>";
+						html +="<img id='image' src='"+data.store_detail.license_pic+"' width='200px'>";
+					$("#licence_logo_show").html(html);
+				}else
+				{
+					$("#licence_logo_show").html("");
+				}
+				
+		        var html = "";
+				$.each(data.data,function(n,val){		//遍历搜索出的左侧店铺名称和id
+					if(data.data[n].store_id==data.store_detail.store_id){
+						html+="<div class='lkuang  edit_store' style='height:auto;border:3px solid #99CCCC;' value='"+data.data[n].store_id+"' page="+data.page+" >";
+						html+="<input type='hidden' name='store_id_bak' value="+data.data[n].store_id+">";
+
+						html+="<span id='"+data.data[n].store_id+"'>"+data.data[n].store_name+"</span>";
+
+						html+="</div>";
+					}else{
+						html+="<div class='lkuang lkuang_mouseover edit_store' style='height:auto;'  value='"+data.data[n].store_id+"' page="+data.page+" >";
+						html+="<input type='hidden' name='store_id_bak' value="+data.data[n].store_id+">";
+
+						html+="<span id='"+data.data[n].store_id+"'>"+data.data[n].store_name+"</span>";
+						
+						html+="</div>";
+					}
+					$('.bkuang').html(html);	//左侧店铺写入
+				});                            
+                        
+             }
+         });
+
+		
+		 $.ajax({
+             type: "POST",
+             url: "/store/store/scategory",
+             data: "",
+             dataType: "json",
+             async : false,
+             success: function(result){
+                if(result.state!='1')
+				{
+					$(".category").html('获取店铺分类失败');
+					return false;
+				}   
+                var html = '';
+				html+= "<input type='hidden' name='category2' value=''/>";
+				
+				var category = $("input[name='cate_judge']").val();
+		
+				var gcategory = category.split(',');
+				$.each(result.data,function(k,v){
+					var cate_id = v['cate_id'];
+					var cate_name = v['cate_name'];
+					if($.inArray(cate_id,gcategory)=='-1')
+					{
+						html+="<span><input type='checkbox' name='scategory' value='"+cate_id+"'>"+cate_name+"</span>";
+					}else
+					{
+						html+="<span><input type='checkbox' checked='checked' name='scategory' value='"+cate_id+"'>"+cate_name+"</span>";
+					}
+				});
+				$(".category").html(html);         
+             }
+         });
+
+         $('#tabs').tabs('option','active',0);
+	});
+
+
+	  
+
+
+	//新增店铺模板
+	function store_add()
+	{
+		var href = '/application/modules/Store/views/store/form.phtml';
+		$("#store_edit_result").load(href);
+		$("#store_edit_result").dialog({
+			resizable:true,
+			height:600,
+			width:700,
+			modal:true,
+		});
+	}
+</script>
+
+<!-- 以下是店铺修改引入 -->
+<!-- ============================================================================================== -->
+<script type='text/javascript'>
+	var store_id = $("input[name='basic_store_id']").val();
+	var store_name = $("input[name='store_name_edit']").val();
+		$(function(){
+			$( "#tabs" ).tabs();
+		});
+	$("input[name='region_name_edit']").val("");
+</script>
+
+<script type='text/javascript'>
+//修改店铺信息
+
+ $(document).on("mouseover",".lkuang_mouseover",function(){
+ 	$(this).css({"border":"3px solid #999966","cursor":"pointer"}); 
+ });
+ $(document).on("mouseout",".lkuang_mouseover",function(){
+ 	$(this).css({"border":'0px'}); 
+ });
+//店铺编辑的显示和隐藏
+function region_change()
+{
+	$(".region_hide").remove();
+	$(".region_edit").show();
+}
+
+$(function(){
+//验证店铺名字
+	$(document).on("blur","#store_name",function(){
+		var store_name = $(this).val();
+		var store_id = $("#goods").attr("store_id");
+		$.ajax({   
+			type: "post",   
+			url:'/store/store/store_check_edit',
+			async:false,
+			dataType:'json',
+			data:{"store_id":store_id,"store_name":store_name},
+			success:function(result)
+			{
+				if(result.state!='1')
+				{
+					$(".store_name_error").html("店铺名已经存在");
+				}else
+				{
+					$(".store_name_error").html("");
+				}
+			}	
+		});
+    });		
+      
+$("#edit_form").validate({
+		debug:true,
+		rules:{
+			store_name_edit:{required:true,
+					   },
+			address:{
+				required: true,
+			},
+			longitude:{
+				required: true,
+			},
+			latitude:{
+				required: true,
+			},
+			tel:{
+				required: true,
+			},
+			scategory:
+			{
+				required: true,
+			},
+			min_cost: {
+				required: true,
+				number_check:true,
+			},
+			delivery_fee: {
+				required: true,
+				number_check:true,
+			},
+			receipt: {
+				required: true,
+			},
+			state:
+			{
+			    required: true,	
+			},
+			visibility:
+			{
+			    required: true,	
+			},			
+			zao_start:{
+				date_check:true,
+			},
+			zao_close:{
+				date_check:true,
+			},
+			zhong_start:{
+				date_check:true,
+			},
+			zhong_close:{
+				date_check:true,
+			},
+			wan_start:{
+				date_check:true,
+			},
+			wan_close:{
+				date_check:true,
+			},
+			/*
+			registration_mark:
+			{
+				registration_check:true,
+			}
+			*/
+		},
+		messages:{
+			store_name_edit:"请输入店铺名！",
+			address:'请输入地址',	
+			longitude:'请输入经纬度',
+			latitude:'请输入经纬度',	
+			tel:"请输入电话",
+			scategory:'请选择店铺分类',
+			receipt:'请选择是否有发票',
+			state:'请选择上下架状态',
+			visibility:'请选择店铺是否为隐藏',
+		},
+		
+		errorPlacement: function(error,element)
+		{ //指定错误信息位置
+			if(element.is(':radio'))
+			{ 
+				error.appendTo(element.parent()); 
+			}else if(element.is(':checkbox'))
+			{
+				error.appendTo(element.parent().parent()); 
+			}else
+			{
+				error.insertAfter(element); 
+			}
+			
+		}, 
+		
+		submitHandler:function(){  
+				//分类获取
+				var chk_value = '';  
+				$('input[name="scategory"]:checked').each(function(){  
+					chk_value+=$(this).val()+',';
+				});
+				
+				$("input[name='category2']").val(chk_value);
+				
+				//验证(区域)条件是在编辑区域的状态下
+				
+				if($(".region_hide").length<1)
+				{
+						//在修改区域的情况	
+						var city = $("select[name='city']").val();
+						var county = $("select[name='county']").val();
+						var street = $("select[name='street']").val();
+						var building = $("select[name='building']").val();
+			
+						var street_length = $("select[name='street'] option").length;
+						var building_length = $("select[name='building'] option").length;
+						
+						if((street_length>1 && street=='0') || (building_length>1 && building=='0') || city =='0' || county=='0')
+						{
+							$(".address_error").html("请将区域选择完整");
+							return false;
+						}else
+						{
+							var city_text = $("select[name='city']").find("option:selected").text();
+							var county_text = $("select[name='county']").find("option:selected").text();
+							var street_text = $("select[name='street']").find("option:selected").text();
+							var building_text = $("select[name='building']").find("option:selected").text();
+						
+							$("input[name='region_name_edit']").val(city_text+county_text+street_text+building_text);
+							
+							$(".address_error").html("");
+						}
+				}
+				
+				var options = {
+					url:'/store/store/update',
+					type:'post',
+					dataType:'json',
+					async:'false',
+					success:function(result)
+					{
+
+						if(result.state!='1')
+						{
+							$(".form_error_show").html(result.message);
+							return false;
+						}
+						var append = '?' + new Date().getTime() + 'a' + Math.random();
+
+						$(".form_error_show").html("");
+						
+						//重新获取店铺图片url，停留在当前页面
+						var html="<td></td>";	
+							html+="<td>";				
+							html+="<div id='logo_show' style='width:200px;height:auto'>";					
+							html+="<img id='image' src='"+result.default_image+append+"' width=\"200px\">";
+							html+="</div></td>";				
+							$(".image").html(html);	
+
+						//重新获取店铺的营业执照，停留在当前页面	
+						if(result.license_pic.length>0)
+						{
+							var license_html="<td></td>";	
+							license_html+="<td>";				
+							license_html+="<div id='licence_logo_show' style='width:200px;height:auto'>";					
+							license_html+="<img src='"+result.license_pic+append+"' width=\"200px\">";
+							license_html+="</div></td>";				
+							$(".licence_image").html(license_html);	
+						}					
+						
+						$("#store_edit_result").html("编辑店铺成功");
+						$("#store_edit_result").dialog();
+					}
+					
+				};
+				
+				$("#edit_form").ajaxSubmit(options);
+				return false;
+		}, 
+
+});	
+});
+
+</script>
+
+<script type='text/javascript'>   //店铺分类
+	function gcategory()
+	{
+		var store_id = $('#gcategory').attr('store_id');
+		$.post('/goods/gcategory/index',{'store_id':store_id},function(result){
+				if(result.state=='-1'  || result.state=='-3'  || result.state=='-4')
+				{
+					 $("#tabs-3").html(result.message);
+				}else if(result.state=='-2')
+				{	
+					//对话弹出当前店铺无分类
+					$("#wufenlei").html("当前店铺无分类");
+					$("#wufenlei").dialog();	
+
+					var html = "";
+					
+						html+='<div style="width:20%;margin-left:80%;clear:both;height:auto">';  //添加分类
+						html+='<input class="gcategory_add" style="width:auto;padding:9px 15px;background:#617798;border: 0;font-size: 14px;color: #FFFFFF;-moz-border-radius: 5px;-webkit-border-radius: 5px;" type="submit" value="添加分类">';
+						html+="<input type='hidden' name='edit_id' value='"+store_id+"'/>";
+						html+='</div>';
+						
+						html+="<div style=\"width:100%;clear:both;height:auto\"><table id=\"selectable\">";
+						html+="<tr class=\"ui-widget-content2\"><th>分类</th><th>菜品数量</th><th>状态</th><th>操作</th></li>";
+
+						html+="</table></div>";
+								
+					$("#tabs-3").html(html);
+					
+				}else if(result.state=='1')
+				{
+					//当前店铺下存在菜品分类的情况
+					var html = "";
+					
+						html+='<div style="width:20%;margin-left:80%;clear:both;height:auto">';  //添加分类
+						html+='<input class="gcategory_add" style="width:auto;padding:9px 15px;background:#617798;border: 0;font-size: 14px;color: #FFFFFF;-moz-border-radius: 5px;-webkit-border-radius: 5px;" type="submit" value="添加分类">';
+						html+="<input type='hidden' name='edit_id' value='"+store_id+"'/>";
+						html+='</div>';
+						
+						html+="<div style=\"width:100%;clear:both;height:auto\"><table id=\"selectable\">";
+						html+="<tr class=\"ui-widget-content2\"><th>分类</th><th>菜品数量</th><th>状态</th><th>操作</th></tr>";	
+					$.each(result.data,function(key,value){
+
+							var cate_id = value['cate_id'];
+							var cate_name = value['cate_name'];
+							var count 	  = value['count'];
+							var if_show  = value['if_show'];
+							if(if_show =='1')
+							{
+								if_show = '显示';
+							}else
+							{
+								if_show = '隐藏';
+							}
+							if(count == null)
+							{
+								count = '0';
+							}
+
+							if(key%2==0)
+							{
+								html+="<tr class=\" tr_color2\">";
+							}else
+							{
+								html+="<tr class=\"ui-widget-content2\">";
+							}
+							
+							html+="<td id='"+cate_id+"'>"+cate_name+"</td><td>"+count+"</td><td id='if_show"+cate_id+"'>"+if_show+"</td><td><a href='#'  value="+cate_id+" style='color:#617798' class='gcategory_edit'>编辑</a></td></tr>";
+					});
+
+					html+="</table></div>";
+								
+					$("#tabs-3").html(html);
+									
+				}
+
+		},'json');
+		
+	}
+		//新增分类
+		$(document).on('click','.gcategory_add',function(){
+				
+				 var html = '<form><fieldset class="ui-helper-reset">';
+					 html+= '<label for="tab_title">添加分类</label>';
+					 html+= '<input type="text" name="gcategory" id="tab_title" value="" class="ui-widget-content2 ui-corner-all">';
+					 html+='</fieldset></form>';
+					 
+					 html+='<div class="error_show" style="color:red"></div>';
+					 
+					$("#wufenlei").html(html);
+					 
+					$("#wufenlei").dialog({
+						autoOpen: false,
+						modal: true,
+						buttons: {
+							"添加": function(){
+								//添加分类
+								var store_id = $("input[name='edit_id']").val();
+								var gcategory_name = $("input[name='gcategory']").val();
+								if(gcategory_name=='')
+								{
+									$(".error_show").html("请填写分类名字");
+									return false;
+								}
+								$.post('/goods/gcategory/insert',{'store_id':store_id,'gcategory':gcategory_name},function(result){
+									 if(result.state!='1')
+									 {
+										$(".error_show").html(result.message);
+									 }else
+									 {
+										//展示新增的店铺分类
+										var html="<tr class=\"ui-widget-content2\"><td id='"+result.data+"'>"+gcategory_name+"</td><td>0</td><td  id='if_show"+result.data+"'>显示</td><td><a href='#' style='color:#617798' value="+result.data+" class='gcategory_edit'>编辑</a></td></tr>";
+
+										$("#selectable").children().append(html);
+
+										alert('新增分类成功');
+										
+										//取消input框
+										$("input[name='gcategory']").val("");
+										
+									 }
+								},'json');
+							},
+							"取消": function(){
+								$( this ).dialog("close");
+							}
+						},
+					});
+					
+					$("#wufenlei").dialog("open");
+					
+		});
+		
+		//分类的编辑
+		$(document).on("click",".gcategory_edit",function(){
+					var cate_id = $(this).attr("value");
+					
+					var cate_name = $("#"+cate_id).text();
+
+					var if_show = $("#if_show"+cate_id).text();
+					
+					var html = '<form><fieldset class="ui-helper-reset">';
+					 html+= '<input type="hidden" name="category_edit" value="'+cate_id+'">'
+					 html+= '<label for="gcategory">分类名:</label>';
+					 html+= '<input type="text" name="gcategory" value="'+cate_name+'" class="ui-widget-content2 ui-corner-all">';
+					 html+="<div style='width:100%;height:10px;clear:both'>&nbsp;&nbsp;</div>";
+					 html+="<div id=\"if_show\">&nbsp;&nbsp;&nbsp;";
+
+					 if(if_show =='显示')
+					 {
+					 	html+="<input type=\"radio\" id=\"radio1\" name=\"if_show\" checked=\"checked\" value='1'><label for=\"radio1\">显示</label>";
+					 	html+="<input type=\"radio\" id=\"radio2\" name=\"if_show\" value='0'><label for=\"radio2\">隐藏</label>";
+					 }else
+					 {
+					 	 html+="<input type=\"radio\" id=\"radio1\" name=\"if_show\" value='1'><label for=\"radio1\">显示</label>";
+						 html+="<input type=\"radio\" id=\"radio2\" name=\"if_show\" checked=\"checked\" value='0'><label for=\"radio2\">隐藏</label>";
+					 }
+					 html+="</div>"
+					 html+='</fieldset></form>';
+					 
+					 html+='<div class="error_show" style="color:red"></div>';
+					 
+					$("#wufenlei").html(html);
+					
+					$("#wufenlei").dialog({
+						autoOpen: false,
+						modal: true,
+						buttons: {
+							"编辑": function(){
+								//编辑分类	
+								var cate_id = $("input[name='category_edit']").val();
+							
+								var cate_name = $("input[name='gcategory']").val();
+							
+								var if_show = $("input[name='if_show']:checked").val();
+								
+								var store_id = $("input[name='edit_id']").val();
+
+								if(cate_name=='')
+								{
+									$(".error_show").html("请填写分类名字");
+									return false;
+								}
+								$.post('/goods/gcategory/update',{'store_id':store_id,'cate_id':cate_id,'cate_name':cate_name,'if_show':if_show},function(result){
+									if(result.state!='1')
+									{
+										$(".error_show").html(result.message);
+										return false;
+									}
+									
+									$("#"+cate_id).text(cate_name);
+									if(if_show=='1')
+									{
+										if_show = "显示";
+									}else
+									{
+										if_show = "隐藏";
+									}
+									$("#if_show"+cate_id).text(if_show);
+
+									alert('修改分类成功');
+									
+									$("#wufenlei").dialog("close");
+								},'json');
+								
+							},
+							"取消": function(){
+								$(this).dialog("close");
+							}
+						},
+					});
+					
+					
+					$("#wufenlei").dialog("open");
+					$("#if_show" ).buttonset();
+		
+		});
+</script>
+
+<script type='text/javascript'>   //店铺菜品
+//店铺编辑下的菜品显示
+function goods()
+{
+	var store_id = $('#goods').attr('store_id');
+
+	 $.post('goods',{'store_id':store_id},function(result){
+	 
+			var html="";
+					
+			html+='<div style="width:20%;margin-left:80%;clear:both;height:auto">';  
+			html+='<input class="goods_add" style="width:auto;padding:9px 15px;background:#617798;border: 0;font-size: 14px;color: #FFFFFF;-moz-border-radius: 5px;-webkit-border-radius: 5px;" type="submit" value="添加菜品">';
+			html+='</div>';
+			html+='<div style="width:99%;height:auto">';
+			html+='<table width="100%" height="auto" class="table_con_cp"  id="goods_show_table">';
+			html+="<tr class='tr_color'>";
+			html+="<th width='5%'>菜品id</th>";
+			html+="<th width='20%'>菜品名</th>";
+			html+="<th width='10%'>价格</th>";
+			html+="<th width='10%'>菜品分类</th>";
+			html+="<th width='10%'>有票折扣</th>";
+			html+="<th width='10%'>无票折扣</th>";
+			html+="<th width='10%'>包装费</th>";
+			html+="<th width='5%'>菜品图片</th>";
+			html+="<th width='10%'>上下架</th>";
+			html+="<th width='10%'>操作</th>";
+			html+="</tr>";
+			
+			if(result.state !=1)
+			{				
+				html+="<tr class='tr_color'><th colspan='8' style='color:#ABCDEF'>无查询结果</th></tr>";
+				$("#tabs-4").html(html);
+					return  false;
+			}  
+
+			var goods_array = result.data;
+			
+			$.each(goods_array,function(key,value){
+				if(key%2==0)
+				{
+					html += "<tr class='tr_color2' id='goods_"+value['goods_id']+"'>";
+				}else
+				{
+					html += "<tr class='tr_color'  id='goods_"+value['goods_id']+"'>";
+				}
+				
+				
+				html += "<td width='5%'>"+value['goods_id']+"</td>";
+				html += "<td width='20%'>"+value['goods_name']+"</td>";
+				html += "<td width='10%'>"+value['price']+"</td>";
+				html += "<td width='10%'>"+value['cate_name']+"</td>";
+				html += "<td width='10%'>"+value['receipt_discount']+"</td>";
+				html += "<td width='10%'>"+value['nreceipt_discount']+"</td>";
+				html += "<td width='10%'>"+value['packing_fee']+"</td>";
+				
+
+				if(value['default_image'] == ''  || value['default_image'] == null)
+				{
+					html += "<td width='5%'>无</td>";
+				}else
+				{
+					html += "<td width='5%'>有</td>";
+				}
+				if(value['if_show']==1)
+				{
+					html+="<td width='10%' class='orange'><a href='javascript:void(0);' gid='"+value['goods_id']+"' id='"+value['if_show']+"' class='goods_show' style='color:#ff923f'>上架</a></td>"
+				}else
+				{
+					html+="<td width='10%'><a href='javascript:void(0);' gid='"+value['goods_id']+"' id='"+value['if_show']+"' class='goods_show' style='color:#757575'>下架</a></td>";
+				}
+				
+
+				html += "<td width='10%'><a class='orange goods_edit' value='"+value['goods_id']+"'>修改</a></td>";
+
+				html += "</tr>";
+				html+='</div>';
+				
+			});
+				html += "</table>";
+				$("#tabs-4").html(html);
+
+	 },'json');
+}
+
+	
+
+//添加菜品
+$(document).on("click",".goods_add",function(){
+		var goods_href = "/application/modules/Store/views/store/goods_add.phtml";
+		$("#goods_dialog").load(goods_href);
+		$("#goods_dialog").dialog({
+			resizable:true,
+			height:600,
+			width:700,
+			modal:true,
+		});
+		//获取store_id
+
+		var store_id = $("#goods").attr("store_id");
+
+		//查找当前店铺的分类
+		$.ajaxSetup({async:false});
+		$.post('/goods/gcategory/index',{'store_id':store_id},function(result){
+				if(result.state!=1)
+				{
+					$(".gcategory").html("<span style='color:red'>未查询到店铺的分类,请先添加分类</span>");
+					return false;
+				}
+
+				$("input[name='store_goods_id']").val(store_id);
+				var html="";
+				html+="<select name='gcategory_id' id='gcategory_id_add'>";
+				$.each(result.data,function(k,v){
+					html+="<option value='"+v['cate_id']+"'>"+v['cate_name']+"</option>";
+				});
+				html+="</select>";
+				$(".check_store").html("");
+				$(".store_error").hide();
+				$(".gcategory").html(html);
+		},'json');
+		
+		//写入店铺id		
+		$.ajaxSetup({async:true});
+});
+
+//修改店铺下的菜品(修改菜品)
+$(document).on("click",'.goods_edit',function(){
+
+	var goods_id = $(this).attr("value");
+
+	if(goods_id.length<1)
+	{	
+		alter("获取修改菜品信息缺失");
+	}
+	
+	$.ajaxSetup({async:false});
+	$.post('/store/store/goods_edit',{'goods_id':goods_id},function(result){
+			if(result.state!='1')
+			{
+				alert(result.message);
+				return false;
+			}else
+			{
+
+				var href = '/application/modules/Store/views/store/goods_edit.phtml';
+				$("#goods_dialog_edit").load(href);
+				$("#goods_dialog_edit").dialog({
+					resizable:true,
+					height:600,
+					width:700,
+					modal:true,
+				});
+				goods_edit(result.data);
+			}
+	},'json');
+	
+	$.ajaxSetup({async:true});
+});
+
+
+//店铺下菜品修改成功后的单个菜品信息刷新
+function  success(data)
+{
+	var goods = data;
+								
+	var goods_id  = goods['goods_id'];
+	
+	var html = "<td width='5%'>"+goods['goods_id']+"</td>";
+	html += "<td width='20%'>"+goods['goods_name']+"</td>";
+	html += "<td width='10%'>"+goods['price']+"</td>";
+	html += "<td width='10%'>"+goods['cate_name']+"</td>";
+	html += "<td width='10%'>"+goods['receipt_discount']+"</td>";
+	html += "<td width='10%'>"+goods['nreceipt_discount']+"</td>";
+	html += "<td width='10%'>"+goods['packing_fee']+"</td>";
+	
+
+	if(goods['default_image'] == null || goods['default_image'] =='')
+	{
+		html += "<td width='5%'>无</td>";
+	}else
+	{
+		html += "<td width='5%'>有</td>";
+	}
+
+	if(goods['if_show']==1)
+	{
+		html+="<td width='10%' class='orange'><a href='javascript:void(0);' gid='"+goods['goods_id']+"' id='"+goods['if_show']+"' class='goods_show' style='color:#ff923f'>上架</a></td>"
+	}else
+	{
+		html+="<td width='10%'><a href='javascript:void(0);' gid='"+goods['goods_id']+"' id='"+goods['if_show']+"' class='goods_show' style='color:#757575'>下架</a></td>";
+	}
+	
+
+	html += "<td width='10%'><a class='orange goods_edit' value='"+goods['goods_id']+"'>修改</a></td>";
+	
+
+	$("#goods_"+goods_id).html(html);
+}
+</script>
+
+
+<script type='text/javascript'>   //合作伙伴
+  function partner()
+  {
+  	var store_id = $('#partner').attr('store_id')
+  	$.post('/store/store/partner',{'store_id':store_id},function(result){
+  			if(result.state!='1')
+  			{
+  					//对话弹出合作伙伴的获取错误
+					$("#partner").html(result.message);
+					$("#partner").dialog();	
+					return false;
+  			}
+
+
+			var html = "";
+				
+				html+="<div style=\"width:100%;clear:both;height:auto\"><table id=\"selectable\">";
+				html+="<tr class=\"ui-widget-content2\"><th>名称</th><th>推送状态</th><th>店铺与合作伙伴的状态</th></tr>";	
+			$.each(result.data,function(key,value){
+					var partner_id = value['appkey'];
+					var partner_name = value['partner_name'];
+					var distribute = value['distribute'];
+					var partner_store_state=value['partner_store_state'];
+					var distribute_status = '';
+					var store_state="";
+		
+					if(distribute =='false')
+					{
+						distribute_status = 'false';
+						distribute = '未推送';
+						store_state ='<td>-----</td>';
+					}else
+					{
+						distribute_status = 'true';
+						distribute = '已推送';
+						if(partner_store_state=='1')
+						{
+							store_state="<td class='store_state' id='store_state"+partner_id+"'><a style='border:2px solid #fff;background-color:#617798;padding:3px 4px 3px 4px;color:#fff'>上架</a></td>";
+						}else
+						{
+							store_state="<td class='store_state' id='store_state"+partner_id+"'><a style='border:2px solid #fff;background-color:#617798;padding:3px 4px 3px 4px;color:#fff'>下架</a></td>";
+						}
+					}
+					if(key%2==0)
+					{
+						html+="<tr class=\"tr_color2\">";
+					}else
+					{
+						html+="<tr class=\"ui-widget-content2\">";
+					}
+					
+					html+="<td  id='distribute_"+partner_id+"'>"+partner_name+"</td><td class='distribute_change' value='"+distribute_status+"'><a style='border:2px solid #fff;background-color:#617798;padding:3px 4px 3px 4px;color:#fff'>"+distribute+"</a></td>"+store_state+"</li>";
+			});
+
+			html+="</table></div>";
+						
+			$("#tabs-6").html(html);
+  	},'json');
+
+  }
+
+
+  	$(document).on('mouseover','.distribute_change',function(){
+  			$(this).css('cursor','pointer');
+  	});
+
+
+
+  	//修改店铺下的推送状态
+
+  	$(document).on('click','.distribute_change',function(){
+
+  		var $this = $(this);
+
+  		var to_partner = $(this).prev().attr("id");
+
+  		var store_id = $("#partner").attr("store_id");
+
+  		var distribute_status = $(this).attr("value");
+
+  		var to_partner = to_partner.split("distribute_");
+
+  		var to_partner = to_partner[1];
+
+  		if(distribute_status == 'false')
+  		{
+  			//推送到这个合作伙伴
+  			$.post('/Relevance/upload',{'store_ids':store_id,'to_partner':to_partner},function(result){
+
+  					if(result.state !='1')
+  					{
+  						$("#pull_off_shelves").html(result.message);
+  						$("#pull_off_shelves").dialog();
+  						return false;
+  					}
+
+  					//推送结果
+
+					//1.推送成功的
+					var tuisong_success = result.distribute_success;
+					//2.推送失败的
+					var tuisong_failure = result.distribute_failure;
+					//3.未推送到美食送的
+					var tuisong_meishisong_disabled = result.distribute_meishisong_disabled;
+					//4.已经推送到当前合作伙伴的
+					var tuisong_already = result.distribute_already;
+
+					var tuisong_result = " ";
+
+  					if(tuisong_success.length>0)
+					{	
+						tuisong_result = "<div>店铺推送成功</div>";
+						//修改显示和值
+	  					$this.attr("value",'true');
+	  					$this.children().eq(0).text('已推送');
+	  					var html = '<td id="store_state'+to_partner+'" class="store_state style="cursor:pointer"><a style="border:2px solid #fff;background-color:#617798;padding:3px 4px 3px 4px;color:#fff">上架</a></td>';
+	  					$this.next().replaceWith(html);
+					}
+
+					if(tuisong_already.length>0)
+					{
+						tuisong_result = "<div>当前餐厅已经推送到这个合作伙伴</div>";
+					}
+
+					if(tuisong_meishisong_disabled.length>0)
+					{
+						tuisong_result ="<div>请先将这个店铺推送到美食送</div>";
+					}
+
+					if(tuisong_failure.length>0)
+					{
+						tuisong_failure = tuisong_failure[0];
+						tuisong_result = "<div>推送到合作伙伴失败--->"+tuisong_failure.message+"</div>";
+					}	
+
+					$("#pull_off_shelves").html(tuisong_result);
+  					$("#pull_off_shelves").dialog();		
+  					
+  			},'json');
+
+  		}
+
+  		if(distribute_status == 'true')
+  		{
+  			//取消这个合作伙伴的推送
+
+  			$.post('/Relevance/store_off_load',{'store_ids':store_id,'to_partner':to_partner},function(result){
+  					if(result.state!='1')
+  					{	
+						$("#pull_off_shelves").html(result.message);
+  						$("#pull_off_shelves").dialog();
+  						return false;
+  					}
+	  					//取消推送结果
+
+						//1.取消推送成功的
+						var undistribute_success = result.undistribute_success;
+						//2.取消推送失败的
+						var undistribute_failure = result.undistribute_failure;
+						//3.还在其他平台上的
+						var unreasonable_store = result.unreasonable_store;
+						//4.未推送到合作伙伴的
+						var undistribute_store = result.undistribute_store;
+
+						var untuisong_result = "";
+
+						if(undistribute_success.length>0)
+						{
+							untuisong_result = "<div>取消推送成功</div>";
+							//修改显示和值
+		  					$this.attr("value",'false');
+		  					$this.children().eq(0).text('未推送');
+		  					var html = '<td id="store_state'+to_partner+'" class="store_state style="cursor:pointer">-----</td>';
+		  					$this.next().replaceWith(html);
+						}
+
+						if(undistribute_store.length>0)
+						{
+							untuisong_result = "<div>不需要取消推送</div>";
+						}
+
+						if(unreasonable_store.length>0)
+						{
+							untuisong_result = "<div>现在还不能取消到美食送的推送</div>";
+						}
+
+						if(undistribute_failure.length>0)
+						{
+							untuisong_result = "<div>取消推送失败</div>";
+						}
+
+						$("#pull_off_shelves").html(untuisong_result);
+	  					$("#pull_off_shelves").dialog();
+  			},'json');	
+		}
+  	});
+	
+
+	//修改推送到合作伙伴的上下架的状态
+
+	$(document).on("mouseover",".store_state",function(){
+			$(this).css("cursor","pointer");
+	});
+
+	$(document).on("click",".store_state",function(){
+		var id = $(this).attr("id");
+		var to_partner =id.split("store_state");
+		var to_partner_id = to_partner[1];
+		var store_id = $("#partner").attr("store_id");
+		var store_state=$(this).children().html();
+		var $this = $(this);
+
+		if(store_id.length<1 || to_partner_id.length<1 || store_state.length<1)
+		{
+			alert("未知错误");
+			return false;
+		}
+	
+		$.ajax({
+			type:'post',
+			dataType:'json',
+			data:{'store_id':store_id,'to_partner_id':to_partner_id,'store_state':store_state},
+			async:'false',
+			url:'/store/store/partner_state',
+			success:function(result)
+			{
+				if(result.state!=1)
+				{
+					alert(result.message);
+					return false;
+				}
+
+
+				if(store_state=='上架')
+				{
+					var html="<a style='border:2px solid #fff;background-color:#617798;padding:3px 4px 3px 4px;color:#fff'>下架</a>";
+				}else
+				{
+					var html="<a style='border:2px solid #fff;background-color:#617798;padding:3px 4px 3px 4px;color:#fff'>上架</a>";
+				}
+
+				$this.html(html);
+
+				//提醒修改上下架成功
+				$("#pull_off_shelves").html("上下架操作成功!");
+	  			$("#pull_off_shelves").dialog();
+			}
+
+		});
+
+		
+	});
+ 
+</script>
+
+<script type='text/javascript'> //菜品编辑
+function goods_edit(data)
+{
+	 var store_id = $("#goods").attr("store_id");
+	 var goods = data;
+	 $("input[name='store_goods_id_edit']").val(store_id);
+	 $("input[name='goods_id_edit']").val(goods['goods_id']);
+	 $("input[name='goods_name_edit']").val(goods['goods_name']);
+	 $("input[name='price_edit']").val(goods['price']);
+	 $("input[name='packing_fee_edit']").val(goods['packing_fee']);
+	 $("input[name='receipt_discount_edit']").val(goods['receipt_discount']);
+	 $("input[name='nreceipt_discount_edit']").val(goods['nreceipt_discount']);
+	 $("input[name='spec_name_edit']").val(goods['spec_name']);
+	 $(".summary_edit").val(goods['summary']);
+	 
+
+	 if(goods['if_show'] == '1')
+	 {
+		$("input[name='if_show_edit'][value='1']").attr("checked",'checked');
+	 }else
+	 {
+		$("input[name='if_show_edit'][value='0']").attr("checked",'checked');
+	 }
+	
+	 
+	 var default_image = goods['default_image'];
+	 
+
+	 if(default_image != '' &&  default_image != 'null')
+	 {
+		 //有默认图片的情况
+		 $("#upload_default_image_edit").html("<img width='200px' src='"+default_image+"' />"); 
+	 }
+		//获取菜品的出餐时间
+		$.post('/goods/goods/add',function(result){
+			if(result.state == '1')
+			{
+				var data = result.data;
+				var html=''
+				html+="<select class='cate_id' name=\"cate_id_edit\" class=\"{required:true}\">";
+				$.each(data,function(key,value){
+					if(value['cate_id'] == goods['gcategory_id'])
+					{
+						html+="<option  selected='selected' value='"+value['cate_id']+"'>"+value['cate_name']+"</option>";
+					}else
+					{
+						html+="<option value='"+value['cate_id']+"'>"+value['cate_name']+"</option>";
+					}
+					
+				});
+				html+="</select>";
+				$(".category_edit").html(html);
+			}else
+			{
+				$(".category_edit").html("<span style='color:red'>获取菜品出餐时间失败!</span>");
+			}
+
+		},'json');
+		
+		//菜品分类
+		
+		 $.post('/goods/goods/gcategory',{"store_id":store_id},function(result){
+				if(result.state!='1')
+				{
+					$(".gcategory_edit").html(result.message);
+					return false;
+				}
+				
+				var html="";
+					html+="<select name='gcategory_goods_edit'>";
+					$.each(result.data,function(k,v){
+						if(v['cate_id'] == goods['cate_id'])
+						{
+							
+							html+="<option selected='selected' value='"+v['cate_id']+"'>"+v['cate_name']+"</option>";	
+						}else
+						{
+							html+="<option value='"+v['cate_id']+"'>"+v['cate_name']+"</option>";
+						}
+	
+					});
+					html+="</select>";
+					$(".gcategory_edit_goods").html(html);
+				
+			},'json');
+}
+</script>
+
+
+<script type='text/javascript'>
+ //店铺的上下架操作
+$(function(){
+	$(".check_all").click(function(){	
+
+		if(this.checked)
+		{	
+			$("input[type='checkbox'][name='store_id']").prop("checked",true);  //全选
+		}
+		else
+		{	
+			$("input[type='checkbox'][name='store_id']").prop("checked",false);//取消全选     
+		}
+	});
+
+
+	$(document).on("mouseover","#store_upload",function(){
+			$(this).css('cursor','pointer');
+	});
+
+
+	$(document).on("mouseover","#store_off_load",function(){
+			$(this).css('cursor','pointer');
+	});	
+
+
+	//上架
+	$(document).on("click","#store_upload",function(){
+		//1.先查看是否选中
+		var store_ids = '';
+
+		$("input[type='checkbox'][name='store_id']").each(function(){
+			if(this.checked)
+			{
+				store_ids += $(this).attr("value")+',';
+			}
+		});
+
+		if(store_ids.length<1)
+		{
+			var html = '未选中任何店铺';
+			$("#upload").html(html);
+			$("#upload").dialog();
+			return false;
+		}
+
+		//2.执行上架操作
+
+		var html = "<div>请先选择要推送给哪个平台:</div>";
+			html+= "<br/>";
+			html+="<input type='hidden' name='upload_store_ids' value='"+store_ids+"'>";
+		 	html+= "<div id='to_partner'>";
+    		html+="<input type=\"radio\" id=\"radio1\" name=\"to_partner\" value='100000'><label for=\"radio1\">美食送</label>";
+    		html+="<input type=\"radio\" id=\"radio2\" name=\"to_partner\" value='100010'><label for=\"radio2\" >百度</label>";
+    		html+="<input type=\"radio\" id=\"radio3\" name=\"to_partner\" value='100005' ><label for=\"radio3\" >美团</label>";
+    		html+="<input type=\"radio\" id=\"radio4\" name=\"to_partner\" value='100018'><label for=\"radio4\">大众点评</label>";
+		 	html+= "</div>";
+		 	html+="<br/>";
+
+		 	html+="<div><input style='background:none repeat scroll 0 0 #617798;color: #ffffff;font-size:14px;padding:9px 15px;width:auto;'  type=\"submit\" value=\"推送\" id='upload_to_partner'></div>";
+
+		 	html+="<div id='upload_error'  style='color:red'></div>";
+
+		 	html+="<div id='upload_result'></div>";
+
+			$("#upload").html(html);
+			$("#upload").dialog({
+				resizable:true,
+				height:400,
+				width:500,
+				modal:true,
+			});
+
+			$("#to_partner").buttonset();
+
+	});
+
+		//执行上下架操作
+		$(document).on("mouseover","#upload_to_partner",function(){
+				$(this).css("cursor","pointer");
+		});
+		$(document).on("click","#upload_to_partner",function(){
+
+				var store_ids = $("input[name='upload_store_ids']").val();
+
+				var to_partner = $("input[name='to_partner']:checked").val();
+
+				$.post('/Relevance/upload',{'store_ids':store_ids,'to_partner':to_partner},function(result){
+					if(result.state!='1')
+					{
+						$("#upload_error").html(result.message);
+						return false;
+					}
+					//推送结果
+					//1.推送成功的
+					var tuisong_success = result.distribute_success;
+					//2.推送失败的
+					var tuisong_failure = result.distribute_failure;
+					//3.未推送到美食送的
+					var tuisong_meishisong_disabled = result.distribute_meishisong_disabled;
+					//4.已经推送到当前合作伙伴的
+					var tuisong_already = result.distribute_already;
+
+					var tuisong_result = "<div>推送结果如下:</div>";
+
+					if(tuisong_success.length>0)
+					{
+						tuisong_result+="<div>推送成功的店铺id:</div>";
+						$.each(tuisong_success,function(k,v){
+							tuisong_result+=v+',';
+						});
+					}
+
+					if(tuisong_already.length>0)
+					{
+						tuisong_result+="<div>已推送到合作伙伴的店铺id:</div>";
+						$.each(tuisong_already,function(k,v){
+							tuisong_result+=v+',';
+						});
+					}
+
+					if(tuisong_meishisong_disabled.length>0)
+					{
+						tuisong_result+="<div>请先将以下店铺推送到美食送:</div>";
+						$.each(tuisong_meishisong_disabled,function(k,v){
+							tuisong_result+=v+',';
+						});
+					}
+
+					if(tuisong_failure.length>0)
+					{
+						tuisong_result+="<div>推送失败的店铺id和原因:</div>";
+						$.each(tuisong_failure,function(k,v){
+								tuisong_result+=v['store_id']+'==>'+v['message'];
+								tuisong_result+="<br/>";
+						});
+					}
+
+					$("#upload_result").html(tuisong_result);
+
+				},'json');
+
+		});
+
+
+
+	//下架
+	$(document).on("click","#store_off_load",function(){
+		//1.先查看是否选中
+		var store_ids = '';
+
+		$("input[type='checkbox'][name='store_id']").each(function(){
+			if(this.checked)
+			{
+				store_ids += $(this).attr("value")+',';
+			}
+		});
+
+		if(store_ids.length<1)
+		{
+			var html = '未选中任何店铺';
+			$("#upload").html(html);
+			$("#upload").dialog();
+			return false;
+		}
+
+
+		//2.执行下架操作
+		var html = "<div>请先选择要从哪个平台取消推送:</div>";
+			html+= "<br/>";
+			html+="<input type='hidden' name='unset_store_ids' value='"+store_ids+"'>";
+		 	html+= "<div id='unset_to_partner'>";
+    		html+="<input type=\"radio\" id=\"radio1\" name=\"unset_to_partner\" value='100000'><label for=\"radio1\">美食送</label>";
+    		html+="<input type=\"radio\" id=\"radio2\" name=\"unset_to_partner\" value='100010'><label for=\"radio2\" >百度</label>";
+    		html+="<input type=\"radio\" id=\"radio3\" name=\"unset_to_partner\" value='100005' ><label for=\"radio3\" >美团</label>";
+    		html+="<input type=\"radio\" id=\"radio4\" name=\"unset_to_partner\" value='100018'><label for=\"radio4\">大众点评</label>";
+		 	html+= "</div>";
+		 	html+="<br/>";
+
+		 	html+="<div><input style='background:none repeat scroll 0 0 #617798;color: #ffffff;font-size:14px;padding:9px 15px;width:auto;'  type=\"submit\" value=\"取消推送\" id='unset_partner'></div>";
+
+		 	html+="<div id='unset_error'  style='color:red'></div>";
+
+		 	html+="<div id='unset_result'></div>";
+
+			$("#upload").html(html);
+			$("#upload").dialog({
+				resizable:true,
+				height:400,
+				width:500,
+				modal:true,
+			});
+
+			$("#unset_to_partner").buttonset();
+
+	});
+
+		//执行下架操作
+		$(document).on("mouseover","#unset_to_partner",function(){
+				$(this).css("cursor","pointer");
+		});
+
+		$(document).on("click","#unset_partner",function(){
+
+				var store_ids = $("input[name='unset_store_ids']").val();
+
+				var to_partner = $("input[name='unset_to_partner']:checked").val();
+
+
+				$.post('/Relevance/store_off_load',{'store_ids':store_ids,'to_partner':to_partner},function(result){
+					if(result.state!='1')
+					{
+						$("#unset_error").html(result.message);
+						return false;
+					}
+
+					//取消推送结果
+
+					//1.取消推送成功的
+					var undistribute_success = result.undistribute_success;
+					//2.取消推送失败的
+					var undistribute_failure = result.undistribute_failure;
+					//3.还在其他平台上的
+					var unreasonable_store = result.unreasonable_store;
+					//4.未推送到合作伙伴的
+					var undistribute_store = result.undistribute_store;
+
+					var untuisong_result = "<div>推送结果如下:</div>";
+
+					if(undistribute_success.length>0)
+					{
+						untuisong_result+="<div>取消推送成功的店铺id:</div>";
+						$.each(undistribute_success,function(k,v){
+							untuisong_result+=v+',';
+						});
+					}
+
+					if(undistribute_store.length>0)
+					{
+						untuisong_result+="<div>不需要取消推送的合作伙伴的店铺id:</div>";
+						$.each(undistribute_store,function(k,v){
+							untuisong_result+=v+',';
+						});
+					}
+
+					if(unreasonable_store.length>0)
+					{
+						untuisong_result+="<div>以下店铺不能取消推送:</div>";
+						$.each(unreasonable_store,function(k,v){
+							untuisong_result+=v+',';
+						});
+					}
+
+					if(undistribute_failure.length>0)
+					{
+						untuisong_result+="<div>取消推送失败的店铺id和原因:</div>";
+						$.each(undistribute_failure,function(k,v){
+
+							$.each(v,function(f_k,f_v){
+								untuisong_result+=f_v['store_id']+'==>'+f_v['message'];
+							});
+						});
+					}
+
+					$("#unset_result").html(untuisong_result);
+
+				},'json');
+
+		});
+	
+});
+</script>
+
+<script type='text/javascript'>
+
+	$(function(){
+		//导出店铺
+		$(document).on("click",".export_store",function(){
+			//先拼接导出的搜索条件
+			var store_name = $("input[name='store_name']").val();
+			var store_id = $("input[name='store_id']").val();
+			var mss_store_id = $("input[name='mss_store_id']").val();
+			var region="";
+			var partner="";
+			var cate="";
+			//区域
+			$("input[name='second_region']").each(function(){
+				if($(this).is(":checked"))
+				{
+					region+=$(this).next().attr("id");
+					region+=",";
+				}
+			});
+
+			//店铺分类
+			$("input[name='cate']").each(function(){
+				if($(this).is(":checked"))
+				{
+					cate+=$(this).next().attr("id");
+					cate+=",";
+				}
+			});
+			//合作伙伴
+			$("input[name='partner']").each(function(){
+				if($(this).is(":checked"))
+				{
+					partner+=$(this).next().attr("id");
+					partner+=",";
+				}
+			});
+
+		    $.post('export_count',{'store_name':store_name,'store_id':store_id,'mss_store_id':mss_store_id,'region':region,'cate':cate,'partner':partner},function(result){
+		 
+						if(result.state !='1')
+						{
+							$("#export_store").html(result.message+'==>不能进行数据导出');
+							 $("#export_store").dialog();
+							return false;
+						}
+
+						 var num = result.count;
+ 
+						 var msg = '需要导出的数据有 <span style="color: red">' + num + '</span> 行，可能会占用您较多时间来进行导出。<br />您还需要继续吗？';
+
+    					 $("#export_store").html(msg);
+
+    					  $("#export_store").dialog({
+    					  		resizable:true,
+								height:400,
+								width:500,
+								modal: true,
+								buttons: {
+									"导出": function(){
+											$("#export_store").dialog("close");
+											var new_msg = "<div>正在导出，请稍后...</div>";
+											new_msg += "<div class='new_export_error'  style='color:red'></div>";
+
+											$("#export_store").html(new_msg);
+
+											$("#export_store").dialog("open");
+												$.ajax({
+													async:'false',
+													type:'POST',
+													url:'/store/store/export',
+													data:{'store_id':store_id,'store_name':store_name,'mss_store_id':mss_store_id,'cate':cate,'region':region,'partner':partner},
+													dataType:'json',
+													success:function(result)
+													{
+														if(result.state!=1)
+														{
+															$("#export_store").html(result.message);
+															return false;
+														}else
+														{
+															//导出文件
+															$("#export_store").dialog("close");
+															
+            												$("#frameForDownload").remove();
+            												var iframe="<iframe id='frameForDownload' src='"+result.data+"' style='display:none'></iframe>";
+													        $("body").append(iframe);
+														}
+													  }
+
+													});  
+											}	 
+										
+										},
+							  });
+
+				},'json');
+
+			});
+		
+	});
+</script>
+<script type='text/javascript'>
+$(function(){
+	$(document).on("mouseover","#store_shang_load",function(){
+		$(this).css("cursor","pointer");
+	});
+
+	$(document).on("mouseover","#store_xia_load",function(){
+		$(this).css("cursor","pointer");
+	});
+
+
+	$(document).on("click","#store_shang_load",function(){
+		//1.先查看是否选中
+		var store_ids = '';
+
+		$("input[type='checkbox'][name='store_id']").each(function(){
+			if(this.checked)
+			{
+				store_ids += $(this).attr("value")+',';
+			}
+		});
+
+		if(store_ids.length<1)
+		{
+			var html = '未选中任何店铺';
+			$("#partner_store_state").html(html);
+			$("#partner_store_state").dialog();
+			return false;
+		}
+
+		//2.执行上架操作
+
+		var html = "<div>请先选择要上架到哪个平台:</div>";
+			html+= "<br/>";
+			html+="<input type='hidden' name='partner_store_ids' value='"+store_ids+"'>";
+		 	html+= "<div id='to_partner_id'>";
+    		html+="<input type=\"radio\" id=\"radio11\" name=\"to_partner_state\" value='100000'><label for=\"radio11\">美食送</label>";
+    		html+="<input type=\"radio\" id=\"radio21\" name=\"to_partner_state\" value='100010'><label for=\"radio21\" >百度</label>";
+    		html+="<input type=\"radio\" id=\"radio31\" name=\"to_partner_state\" value='100005' ><label for=\"radio31\" >美团</label>";
+    		html+="<input type=\"radio\" id=\"radio41\" name=\"to_partner_state\" value='100018'><label for=\"radio41\">大众点评</label>";
+		 	html+= "</div>";
+		 	html+="<br/>";
+
+		 	html+="<div><input id='partner_state_change' style='background:none repeat scroll 0 0 #617798;color: #ffffff;font-size:14px;padding:9px 15px;width:auto;'  type=\"submit\" value=\"上架\" id=''></div>";
+
+		 	html+="<div id='partner_state_error'  style='color:red'></div>";
+
+		 	html+="<div id='partner_state_result'></div>";
+
+			$("#partner_store_state").html(html);
+			$("#partner_store_state").dialog({
+				resizable:true,
+				height:400,
+				width:500,
+				modal:true,
+			});
+
+			$("#to_partner_id").buttonset();
+
+	});
+
+		//执行上架操作
+		$(document).on("mouseover","#partner_state_change",function(){
+				$(this).css("cursor","pointer");
+		});
+		$(document).on("click","#partner_state_change",function(){
+
+				var store_ids = $("input[name='partner_store_ids']").val();
+
+				var to_partner = $("input[name='to_partner_state']:checked").val();
+
+				if(store_ids.length<1 || to_partner_id.length<1)
+				{
+					alert('请选择要上架的店铺和要上架的合作伙伴');
+					return false;
+				}
+
+				$.ajax({
+					type:'post',
+					dataType:'json',
+					url:'/state/upload',
+					data:{'store_ids':store_ids,'to_partner_id':to_partner},
+					async:'false',
+					success:function(result)
+					{
+						if(result.state !='1')
+						{
+							$("#partner_state_error").html(result.message);
+							return false;
+						}
+
+							alert("批量上架店铺成功");
+							$("#partner_store_state").dialog("close");
+					}
+				});
+				
+		});
+
+
+
+		$(document).on("click","#store_xia_load",function(){
+		//1.先查看是否选中
+		var store_ids = '';
+
+		$("input[type='checkbox'][name='store_id']").each(function(){
+			if(this.checked)
+			{
+				store_ids += $(this).attr("value")+',';
+			}
+		});
+
+		if(store_ids.length<1)
+		{
+			var html = '未选中任何店铺';
+			$("#partner_store_state").html(html);
+			$("#partner_store_state").dialog();
+			return false;
+		}
+
+		//2.执行下架操作
+
+		var html = "<div>请先选择要从哪个平台下架:</div>";
+			html+= "<br/>";
+			html+="<input type='hidden' name='partner_store_ids' value='"+store_ids+"'>";
+		 	html+= "<div id='to_partner_id'>";
+    		html+="<input type=\"radio\" id=\"radio11\" name=\"to_partner_state\" value='100000'><label for=\"radio11\">美食送</label>";
+    		html+="<input type=\"radio\" id=\"radio21\" name=\"to_partner_state\" value='100010'><label for=\"radio21\" >百度</label>";
+    		html+="<input type=\"radio\" id=\"radio31\" name=\"to_partner_state\" value='100005' ><label for=\"radio31\" >美团</label>";
+    		html+="<input type=\"radio\" id=\"radio41\" name=\"to_partner_state\" value='100018'><label for=\"radio41\">大众点评</label>";
+		 	html+= "</div>";
+		 	html+="<br/>";
+
+		 	html+="<div><input id='partner_state_change_off' style='background:none repeat scroll 0 0 #617798;color: #ffffff;font-size:14px;padding:9px 15px;width:auto;'  type=\"submit\" value=\"下架\"></div>";
+
+		 	html+="<div id='partner_state_error'  style='color:red'></div>";
+
+		 	html+="<div id='partner_state_result'></div>";
+
+			$("#partner_store_state").html(html);
+			$("#partner_store_state").dialog({
+				resizable:true,
+				height:400,
+				width:500,
+				modal:true,
+			});
+
+			$("#to_partner_id").buttonset();
+
+	});
+
+		//执行下架操作
+		$(document).on("mouseover","#partner_state_change_off",function(){
+				$(this).css("cursor","pointer");
+		});
+
+		$(document).on("click","#partner_state_change_off",function(){
+
+				var store_ids = $("input[name='partner_store_ids']").val();
+
+				var to_partner = $("input[name='to_partner_state']:checked").val();
+
+				if(store_ids.length<1 || to_partner_id.length<1)
+				{
+					alert('请选择要下架的店铺和要下架的合作伙伴');
+					return false;
+				}
+
+				$.ajax({
+					type:'post',
+					dataType:'json',
+					url:'/state/store_off_load',
+					data:{'store_ids':store_ids,'to_partner_id':to_partner},
+					async:'false',
+					success:function(result)
+					{
+						if(result.state !='1')
+						{
+							$("#partner_state_error").html(result.message);
+							return false;
+						}
+
+							alert("批量下架店铺成功");
+							$("#partner_store_state").dialog("close");
+					}
+				});
+		});
+	
+});
+</script>
+
+{/literal}
+

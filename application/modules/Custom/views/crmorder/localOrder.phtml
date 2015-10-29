@@ -1,0 +1,45 @@
+{include file="$app_path/application/views/headerNoStyle.phtml"}
+<script>
+	$(function(){
+		var username = {$username};
+		if(!localStorage.getItem(username)){
+			return false;
+		}
+		var localarray = JSON.parse(localStorage.getItem(username)).reverse();
+		var time = {$time};
+		//console.log(localarray);
+		var obj = eval(localarray);
+		if(localarray != null){
+			$(obj).each(function(index){
+				var val = obj[index];
+				if(val.operatetime > time){
+					$(".operate-none").hide();
+					if(val.remark == null){
+						val.remark = '';
+					}
+					operatetime = getLocalTime(val.operatetime);
+					$("#table-local").append('<tr class="history" align="center"><td><a class="goods_color" href="/custom/crmorder/order?order_id='+val.order_id+'" target="_Blank">'+val.order_sn+'</td><td>'+val.consignee+'</a></td><td>'+val.phone_mob+'</td><td>'+val.order_status+'</td><td>'+val.changed_status+'</td><td>'+val.remark+'</td><td>'+operatetime+'</td></tr>');
+				}
+			})
+		}
+	})
+</script>
+	<div id="tabs">
+		<div id="list">
+			<table style="width:100%" id="table-local" border="0" cellpadding="2" cellspacing="1" align="center" class="tableStyle">
+				<tr>
+					<th>订单编号</th>
+					<th>收货人</th>
+					<th>联系电话</th>
+					<th>从</th>
+					<th>改为</th>
+					<th>备注</th>
+					<th>操作时间</th>
+				</tr>
+				<tr class="operate-none"><td colspan="7" align="center">暂无操作记录</td></tr>
+			</table>
+			<!-- <a href="javascript:void(0)" onclick="localStorage.clear();">清空操作记录</a> -->
+		</div>
+	</div>
+</div>
+{include file="$app_path/application/views/footerNoStyle.phtml"}
