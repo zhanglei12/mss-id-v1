@@ -467,28 +467,29 @@ class CrmorderController extends Yaf_Controller_Abstract
 		if($_REQUEST['selectItemarea'] == '' || $_REQUEST['selectItemarea'] == 0){
 			if(!empty($this->areaUserArr)){
 				$area = implode(",", $this->areaUserArr);
-				$search .= " AND b.account_region in (".$area.") ";
+				$search .= " AND a.account_region_id in (".$area.") ";
 				$this->getView()->assign('area', $area);
 				$this->getView()->assign('parent_area', 0);
 			}
 			
 		}
+        $seach1="";
 		if($_REQUEST['emp_name'] && $_REQUEST['emp_name'] != ''){
 			$this->getView()->assign('emp_name', $emp_name);
-			$search .= " AND b.emp_name LIKE '%".$emp_name."%' ";
+            $seach1 .= " AND b.emp_name LIKE '%".$emp_name."%' ";
 		}
 		if($_REQUEST['emp_mobile'] && $_REQUEST['emp_mobile'] != ''){
 			$this->getView()->assign('emp_mobile', $emp_mobile);
-			$search .= " AND b.emp_mobile LIKE '%".$emp_mobile."%' ";
+            $seach1 .= " AND b.emp_mobile LIKE '%".$emp_mobile."%' ";
 		}
-		if(trim($_REQUEST['selectItemarea']) != '' && $_REQUEST['selectItemarea'] != 0) {
+		if(!empty($_REQUEST['selectItemarea']) && $_REQUEST['selectItemarea'] != 0) {
 			$area = implode(",", $_REQUEST['selectItemarea']);
-			if(!($_REQUEST['parent_area'] == 0 && $_REQUEST['selectAllarea'][0] === '0')) {
-				$search .= " AND b.account_region in (".$area.") ";
+
+				$search .= " AND a.account_region_id in (".$area.") ";
 				$parent_area = trim($_REQUEST['parent_area']);
 				$this->getView()->assign('area', $area);
 				$this->getView()->assign('parent_area', $parent_area);
-			}
+
 		}
 
 		if($_GET['orderBy']){
@@ -506,21 +507,27 @@ class CrmorderController extends Yaf_Controller_Abstract
 			$count = '';
 			$status = '50,22,20,31';
 		}
+        if($seach1){
+            $sql2="select emp_id from ecm_employee b where 1=1  ".$seach1;
+            $emp=$this->_db_read->getOne($sql2, array(), DB_FETCHMODE_ASSOC);
+            $emp_id1=$emp?$emp:-1;
+            $search.=' and a.emp_id='.$emp_id1;
+        }
 		$day = time();
-		$time = "DATEDIFF(FROM_UNIXTIME(a.add_time),CURDATE())=0";
+        $start_time=strtotime("today");
+        $time = "a.add_time>".$start_time;
+		//$time = "DATEDIFF(FROM_UNIXTIME(a.add_time),CURDATE())=0";
 		$where = $time." AND a.status in (".$status.") ".$search; 
 		// 获取所有送餐员信息
 		$allEmpSql = "SELECT a.emp_id 
-						FROM ecm_order a 
-						LEFT JOIN ecm_employee b ON a.emp_id = b.emp_id 
-						WHERE DATEDIFF(FROM_UNIXTIME(a.add_time),CURDATE())=0 ".$search." AND b.emp_extention1 in(1,2) GROUP BY a.emp_id";
+						FROM ecm_order a
+						WHERE ".$time." ".$search."  GROUP BY a.emp_id";
 		$allEmp = $this->_db_read->getAll($allEmpSql, array(), DB_FETCHMODE_ASSOC);
-		// var_dump($allEmp);
 		if(!$allEmp[0]['emp_id']){
 			unset($allEmp[0]);
 		}
 		// 获取排序的数组
-		$sql = "SELECT ".$count."a.emp_id FROM ecm_order a LEFT JOIN ecm_employee b ON a.emp_id = b.emp_id WHERE ".$where." GROUP BY a.emp_id ".$orderby;
+		$sql = "SELECT ".$count."a.emp_id FROM  WHERE ".$time." ".$search." GROUP BY a.emp_id ".$orderby;
 		$count_result = $this->_db_read->getAll($sql, array(), DB_FETCHMODE_ASSOC);
 		// 二维数组转一维数组取差集
 		$allEmpArr = array_column($allEmp, 'emp_id');
