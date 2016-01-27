@@ -223,11 +223,18 @@ class OrderModel extends BaseModel
 	public function getAllOrder($page, $limit, $where) {
 	   try{
 			$page = ($page-1)*$limit;
+/*
 			$orderSql = "SELECT a.order_id,a.order_sn,a.add_time,a.partner_order_id,a.emp_id,a.emp_name,a.seller_name,a.cs_order_type,a.status,a.from_partner,a.order_type,a.deliver_type,b.region_name,b.request_time,b.consignee,b.region_id,b.address,a.buyer_id,c.emp_no
 				FROM ecm_order a
 				JOIN ecm_order_extm b ON a.order_id = b.order_id
 				JOIN ecm_member j ON a.buyer_id = j.user_id
 				LEFT JOIN ecm_employee c ON a.operator_id = c.emp_id
+				WHERE $where
+				LIMIT $page, $limit";
+*/
+			$orderSql = "SELECT a.order_id,a.order_sn,a.add_time,a.partner_order_id,a.emp_id,a.emp_name,a.seller_name,a.cs_order_type,a.status,a.from_partner,a.order_type,a.deliver_type,b.region_name,b.request_time,b.consignee,b.region_id,b.address,a.buyer_id
+				FROM ecm_order a
+				JOIN ecm_order_extm b ON a.order_id = b.order_id
 				WHERE $where
 				LIMIT $page, $limit";
 				// echo $orderSql;
@@ -244,10 +251,16 @@ class OrderModel extends BaseModel
 	 * @return int
 	 */
 	public function getAllOrderSUM($where, $limit='50') {
+/*
 		$orderSql = "SELECT COUNT(a.order_id) count
 			FROM ecm_order a
 			JOIN ecm_order_extm b ON a.order_id = b.order_id
 			JOIN ecm_member j ON a.buyer_id = j.user_id
+			WHERE $where";
+*/
+		$orderSql = "SELECT COUNT(a.order_id) count
+			FROM ecm_order a
+			JOIN ecm_order_extm b ON a.order_id = b.order_id
 			WHERE $where";
 		// echo $orderSql;
 		$count_result = $this->_db_read->getRow($orderSql, array(), DB_FETCHMODE_ASSOC);
